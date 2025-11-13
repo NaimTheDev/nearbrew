@@ -6,10 +6,10 @@
 /* Color scheme tokens (replace HSL values with your palette). */
 :root {
   /* Base */
-  --background: 30 47% 95%;             /* #F8F2EC */
+  --background: 30 35% 88%;             /* Darker warm beige */
   --foreground: 26 25% 19%;             /* #3F3025 */
 
-  --card: 30 100% 97%;                  /* #FFF7F0 */
+  --card: 30 47% 95%;                   /* #F8F2EC - Original warm cream */
   --card-foreground: 26 25% 19%;
 
   --popover: 30 100% 97%;

@@ -1,51 +1,23 @@
-import NxWelcome from './nx-welcome';
-
-import { Route, Routes, Link } from 'react-router-dom';
+import {  NearBrewCard, StickyBanner, NearBrewMap } from '../../libs/nearbrew-libs/src';
 
 
 
 
 export function App() {
   return (
-    <div>
-      <NxWelcome title="@nearbrew/nearbrew" />
-
-      {/* START: routes */}
-      {/* These routes and navigation have been generated for you */}
-      {/* Feel free to move and update them to fit your needs */}
-      <br />
-      <hr />
-      <br />
-      <div role="navigation">
-        <ul>
-          <li>
-            <Link to="/">Home</Link>
-          </li>
-          <li>
-            <Link to="/page-2">Page 2</Link>
-          </li>
-        </ul>
+    <div className="min-h-screen bg-background text-foreground">
+      <StickyBanner />
+      
+      {/* Main content area */}
+      <div className="flex justify-center py-16 px-4">
+        <NearBrewCard className="w-full max-w-3xl">
+          <div className="space-y-6">
+            
+            <NearBrewMap height={350} />
+          </div>
+        </NearBrewCard>
       </div>
-      <Routes>
-        <Route
-          path="/"
-          element={
-            <div>
-              This is the generated root route.{' '}
-              <Link to="/page-2">Click here for page 2.</Link>
-            </div>
-          }
-        />
-        <Route
-          path="/page-2"
-          element={
-            <div>
-              <Link to="/">Click here to go back to root page.</Link>
-            </div>
-          }
-        />
-      </Routes>
-      {/* END: routes */}
+      
     </div>
   );
 }

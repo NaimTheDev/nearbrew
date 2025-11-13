@@ -26,6 +26,9 @@
     },
     {
       "path": "./libs/auth-utils"
+    },
+    {
+      "path": "./apps/nearbrew/libs/nearbrew-libs"
     }
   ]
 }

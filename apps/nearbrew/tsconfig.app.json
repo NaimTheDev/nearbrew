@@ -12,7 +12,7 @@
       "@nx/react/typings/image.d.ts",
       "vite/client"
     ],
-    "rootDir": "src"
+    "rootDir": "."
   },
   "exclude": [
     "out-tsc",
@@ -25,6 +25,12 @@
     "src/**/*.test.js",
     "src/**/*.spec.jsx",
     "src/**/*.test.jsx",
+    "libs/**/*.spec.ts",
+    "libs/**/*.test.ts",
+    "libs/**/*.spec.tsx",
+    "libs/**/*.test.tsx",
+    "libs/**/jest.config.*",
+    "libs/**/vite.config.*",
     "vite.config.ts",
     "vite.config.mts",
     "vitest.config.ts",
@@ -33,5 +39,17 @@
     "eslint.config.cjs",
     "eslint.config.mjs"
   ],
-  "include": ["src/**/*.js", "src/**/*.jsx", "src/**/*.ts", "src/**/*.tsx"]
+  "include": [
+    "src/**/*.js",
+    "src/**/*.jsx",
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    "libs/**/*.ts",
+    "libs/**/*.tsx"
+  ],
+  "references": [
+    {
+      "path": "libs/nearbrew-libs/tsconfig.lib.json"
+    }
+  ]
 }

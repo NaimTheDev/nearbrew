@@ -3,6 +3,9 @@
   "include": [],
   "references": [
     {
+      "path": "libs/nearbrew-libs"
+    },
+    {
       "path": "./tsconfig.app.json"
     },
     {
