@@ -8,6 +8,30 @@
     },
     {
       "path": "./apps/nearbrew"
+    },
+    {
+      "path": "./api-gateway-e2e"
+    },
+    {
+      "path": "./api-gateway"
+    },
+    {
+      "path": "./apps/api-gateway-e2e"
+    },
+    {
+      "path": "./apps/api-gateway"
+    },
+    {
+      "path": "./apps/users-service-e2e"
+    },
+    {
+      "path": "./apps/users-service"
+    },
+    {
+      "path": "./libs/shared-types"
+    },
+    {
+      "path": "./libs/auth-utils"
     }
   ]
 }
