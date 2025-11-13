@@ -8,15 +8,11 @@ export default async function buildApp() {
     logger: true,
   });
 
-  // Simple REST endpoint still works
   app.get('/', async () => {
     return { message: 'API Gateway Online 🚀' };
   });
 
-  // ----------------------------------------------------------
-  //  GRAPHQL SETUP (per Nx guide)
-  // ----------------------------------------------------------
-
+ 
   // Schema
   const typeDefs = gql`
     type Query {
@@ -31,7 +27,6 @@ export default async function buildApp() {
     },
   };
 
-  // Apollo Server
   const apollo = new ApolloServer({
     typeDefs,
     resolvers,
@@ -40,16 +35,13 @@ export default async function buildApp() {
 
   await apollo.start();
 
-  // Register Apollo middleware
   app.register(fastifyApollo(apollo), {
     path: '/graphql',
   });
 
   return app;
 }
-// ----------------------------------------------------------
-//  BOOTSTRAP SERVER (this is what you were missing)
-// ----------------------------------------------------------
+
 
 async function start() {
   const app = await buildApp();
