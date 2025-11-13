@@ -10,12 +10,6 @@
       "path": "./apps/nearbrew"
     },
     {
-      "path": "./api-gateway-e2e"
-    },
-    {
-      "path": "./api-gateway"
-    },
-    {
       "path": "./apps/api-gateway-e2e"
     },
     {

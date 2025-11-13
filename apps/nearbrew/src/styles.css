@@ -2,3 +2,79 @@
 @tailwind components;
 @tailwind utilities;
 /* You can add global styles to this file, and also import other style files */
+
+/* Color scheme tokens (replace HSL values with your palette). */
+:root {
+  /* Base */
+  --background: 30 47% 95%;             /* #F8F2EC */
+  --foreground: 26 25% 19%;             /* #3F3025 */
+
+  --card: 30 100% 97%;                  /* #FFF7F0 */
+  --card-foreground: 26 25% 19%;
+
+  --popover: 30 100% 97%;
+  --popover-foreground: 26 25% 19%;
+
+  --border: 33 43% 78%;                 /* #E2C9AC */
+  --input: 30 50% 89%;                  /* #F3E7DB */
+  --ring: 24 52% 53%;                   /* primary brown */
+
+  /* Muted */
+  --muted: 30 50% 89%;
+  --muted-foreground: 28 14% 49%;       /* muted text */
+
+  /* Primary Brand */
+  --primary: 24 52% 53%;                /* #C47A4A */
+  --primary-foreground: 30 47% 95%;     /* background text */
+
+  /* Secondary */
+  --secondary: 30 100% 97%;             /* card bg */
+  --secondary-foreground: 26 25% 19%;
+
+  /* Accent */
+  --accent: 33 43% 78%;
+  --accent-foreground: 26 25% 19%;
+
+  /* Destructive */
+  --destructive: 0 72% 55%;             /* red */
+  --destructive-foreground: 30 47% 95%;
+}
+
+/* DARK MODE — warm coffee shop */
+.dark {
+  --background: 26 23% 12%;             /* rich espresso */
+  --foreground: 30 47% 95%;             /* cream text */
+
+  --card: 26 23% 14%;
+  --card-foreground: 30 47% 95%;
+
+  --popover: 26 23% 14%;
+  --popover-foreground: 30 47% 95%;
+
+  --border: 24 15% 30%;
+  --input: 24 15% 30%;
+  --ring: 33 43% 78%;
+
+  --muted: 26 23% 18%;
+  --muted-foreground: 30 30% 80%;
+
+  --primary: 33 43% 78%;
+  --primary-foreground: 26 25% 19%;
+
+  --secondary: 26 23% 18%;
+  --secondary-foreground: 30 47% 95%;
+
+  --accent: 33 43% 70%;
+  --accent-foreground: 26 25% 15%;
+
+  --destructive: 0 62% 45%;
+  --destructive-foreground: 30 47% 95%;
+}
+
+@layer base {
+  html, body, #root { height: 100%; }
+  body {
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+  }
+}
