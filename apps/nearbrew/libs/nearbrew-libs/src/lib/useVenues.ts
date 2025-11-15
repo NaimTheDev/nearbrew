@@ -40,7 +40,7 @@ export function useVenues(): UseVenues {
         const data = await venueService.getVenues({
           lat: latitude.toString(),
           lng: longitude.toString(),
-          radius: "10000",
+          radius: "30000",
         });
         
         setVenues(data);

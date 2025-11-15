@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { Popup, Marker, MapContainer, TileLayer, useMapEvents } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
@@ -54,7 +54,33 @@ function LocationMarker({ icon }: LocationMarkerProps) {
 }
 
 export function NearBrewMap({ className = '', height = 400 }: NearBrewMapProps) {
-  const defaultPosition: [number, number] = [51.505, -0.09];
+  const [userPosition, setUserPosition] = useState<[number, number] | null>(null);
+  
+  const fallbackPosition: [number, number] = [51.505, -0.09];
+  
+  useEffect(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setUserPosition([position.coords.latitude, position.coords.longitude]);
+        },
+        (error) => {
+          console.warn('Geolocation error:', error.message);
+          setUserPosition(fallbackPosition);
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 300000 // Cache location for 5 minutes
+        }
+      );
+    } else {
+      setUserPosition(fallbackPosition);
+    }
+  }, []);
+
+  
+  const mapCenter = userPosition || fallbackPosition;
 
   const coffeeMarkerIcon = useMemo(
     () =>
@@ -88,11 +114,11 @@ export function NearBrewMap({ className = '', height = 400 }: NearBrewMapProps) 
 
   return (
     <div
-      style={{ height }}
+      style={{ height, zIndex: 1 }}
       className={`relative w-full rounded-3xl overflow-hidden shadow-xl bg-[#f6d9b2] ${className}`}
     >
       <MapContainer
-        center={defaultPosition}
+        center={mapCenter}
         zoom={13}
         minZoom={11}
         zoomControl={false}
@@ -100,13 +126,14 @@ export function NearBrewMap({ className = '', height = 400 }: NearBrewMapProps) 
         scrollWheelZoom={false}
         className=""
         style={{ height: '100%', width: '100%' }}
+        key={`${mapCenter[0]}-${mapCenter[1]}`} // Force re-render when position changes
       >
         <TileLayer
           className=""
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
-        <Marker position={defaultPosition} icon={coffeeMarkerIcon}>
+        <Marker position={mapCenter} icon={coffeeMarkerIcon}>
           <Popup>You are here!</Popup>
         </Marker>
         <LocationMarker icon={coffeeMarkerIcon} />

@@ -64,65 +64,93 @@ export function VenueItemComponent({ venue }: { venue: Venue }) {
         `}
       </style>
       <NearBrewCard>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
-          <div style={{ flex: 1 }}>
-            <h2 style={{ margin: '0 0 4px 0', fontSize: '18px', fontWeight: '600' }}>{venue.venue_name}</h2>
-            <p style={{ margin: '0', fontSize: '14px', color: '#666' }}>{venue.venue_address}</p>
+        <div 
+          style={{ 
+            minHeight: '120px',
+            width: '100%',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'space-between',
+            padding: '16px'
+          }}
+        >
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
+            <div style={{ flex: 1, paddingRight: '8px' }}>
+              <h2 style={{ 
+                margin: '0 0 4px 0', 
+                fontSize: '15px', 
+                fontWeight: '600',
+                lineHeight: '1.25',
+                whiteSpace: 'normal',
+                wordBreak: 'break-word'
+              }}>
+                {venue.venue_name}
+              </h2>
+              <p style={{ 
+                margin: '0', 
+                fontSize: '12px', 
+                color: '#666',
+                lineHeight: '1.4',
+                whiteSpace: 'normal'
+              }}>
+                {venue.venue_address}
+              </p>
+            </div>
+            
+            <div style={{ display: 'flex', alignItems: 'center', flexShrink: 0 }}>
+              <div 
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  padding: '2px 6px',
+                  borderRadius: '10px',
+                  backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                  border: '1px solid #EF4444',
+                  fontSize: '10px',
+                  fontWeight: '600',
+                  color: '#EF4444'
+                }}
+              >
+                <div style={pulsingDotStyle} />
+                LIVE
+              </div>
+            </div>
           </div>
-          
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginLeft: '16px' }}>
+
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div 
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
-                padding: '2px 8px',
-                borderRadius: '12px',
-                backgroundColor: 'rgba(239, 68, 68, 0.1)',
-                border: '1px solid #EF4444',
+                padding: '4px 10px',
+                borderRadius: '14px',
+                backgroundColor: busyInfo.bgColor,
+                border: `1px solid ${busyInfo.color}`,
                 fontSize: '12px',
-                fontWeight: '600',
-                color: '#EF4444'
+                fontWeight: '500'
               }}
             >
-              <div style={pulsingDotStyle} />
-              LIVE
+              <div 
+                style={{
+                  width: '8px',
+                  height: '8px',
+                  borderRadius: '50%',
+                  backgroundColor: busyInfo.color,
+                  marginRight: '6px'
+                }}
+              />
+              <span style={{ color: busyInfo.color }}>
+                {busyInfo.level}
+              </span>
             </div>
-          </div>
-        </div>
 
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div 
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              padding: '4px 12px',
-              borderRadius: '16px',
-              backgroundColor: busyInfo.bgColor,
-              border: `1px solid ${busyInfo.color}`,
-              fontSize: '14px',
-              fontWeight: '500'
-            }}
-          >
-            <div 
-              style={{
-                width: '8px',
-                height: '8px',
-                borderRadius: '50%',
-                backgroundColor: busyInfo.color,
-                marginRight: '6px'
-              }}
+            <Rating
+              style={{ maxWidth: 65, flexShrink: 0 }}
+              value={venue.rating}
+              itemStyles={customStyles}
+              readOnly
             />
-            <span style={{ color: busyInfo.color }}>
-              {busyInfo.level}
-            </span>
           </div>
-
-          <Rating
-            style={{ maxWidth: 75 }}
-            value={venue.rating}
-            itemStyles={customStyles}
-            readOnly
-          />
         </div>
       </NearBrewCard>
     </>

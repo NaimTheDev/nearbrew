@@ -3,7 +3,10 @@ import { NearBrewButton } from './NearBrewButton';
 
 export function StickyBanner() {
   return (
-    <div className="sticky top-0 bg-primary text-primary-foreground p-4 z-50 border-b border-border">
+    <div 
+      className="sticky top-0 bg-primary text-primary-foreground p-4 border-b border-border"
+      style={{ zIndex: 9999 }}
+    >
       <div className="flex items-center justify-between max-w-6xl mx-auto">
       
         <div className="flex items-center gap-3">

@@ -768,11 +768,50 @@ export async function app(fastify: FastifyInstance, opts: AppOptions) {
     Querystring: VenueFilterRequest;
     Reply: VenueFilterResponse;
   }>('/venues/filter', async (request, reply) => {
-    const { lat, lng, radius = '1000' } = request.query;
-    // For now, return all fake venues regardless of filter
-    console.log(`Filtering venues at lat: ${lat}, lng: ${lng}, radius: ${radius}`);
-    
-    return FAKE_RESPONSE_DATA;
+    const { lat, lng, radius } = request.query;
+
+    try {
+      // Build BestTime API URL
+      const apiKey = process.env.BEST_TIME_APP_API_KEY;
+      if (!apiKey) {
+        throw new Error('BEST_TIME_APP_API_KEY environment variable is not set');
+      }
+
+      const bestTimeUrl = new URL('https://besttime.app/api/v1/venues/filter');
+      bestTimeUrl.searchParams.append('api_key_private', apiKey);
+      bestTimeUrl.searchParams.append('busy_min', '50');
+      bestTimeUrl.searchParams.append('busy_max', '100');
+      bestTimeUrl.searchParams.append('live', 'true');
+      bestTimeUrl.searchParams.append('types', 'CAFE,COFFEE');
+      bestTimeUrl.searchParams.append('lat', lat!.toString());
+      bestTimeUrl.searchParams.append('lng', lng!.toString());
+      bestTimeUrl.searchParams.append('radius', radius!.toString());
+      bestTimeUrl.searchParams.append('order_by', 'day_rank_max,reviews');
+      bestTimeUrl.searchParams.append('order', 'asc,desc');
+      bestTimeUrl.searchParams.append('foot_traffic', 'both');
+      bestTimeUrl.searchParams.append('limit', '20');
+      bestTimeUrl.searchParams.append('page', '0');
+
+      console.log(`Calling BestTime API for venues at lat: ${lat}, lng: ${lng}, radius: ${radius}`);
+      
+      const response = await fetch(bestTimeUrl.toString());
+      
+      if (!response.ok) {
+        throw new Error(`BestTime API returned ${response.status}: ${response.statusText}`);
+      }
+
+      const bestTimeData = await response.json() as VenueFilterResponse;
+      
+      // Return the BestTime API response directly as it should match our VenueFilterResponse type
+      return bestTimeData;
+      
+    } catch (error) {
+      console.error('Error calling BestTime API:', error);
+      
+      // Fallback to fake data in case of API errors
+      console.log('Falling back to fake venue data');
+      return FAKE_RESPONSE_DATA;
+    }
   });
 
 
