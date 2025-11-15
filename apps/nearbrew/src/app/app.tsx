@@ -1,5 +1,4 @@
-import {  NearBrewCard, StickyBanner, NearBrewMap } from '../../libs/nearbrew-libs/src';
-
+import {  NearBrewCard, StickyBanner, NearBrewMap, VenueItemListComponent } from '../../libs/nearbrew-libs/src';
 
 
 
@@ -15,7 +14,11 @@ export function App() {
             
             <NearBrewMap height={350} />
           </div>
+          <VenueItemListComponent />
         </NearBrewCard>
+        
+       
+
       </div>
       
     </div>

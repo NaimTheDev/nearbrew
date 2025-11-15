@@ -1,3 +1,5 @@
+export * from './lib/VenueItemListComponent';
+export * from './lib/VenueItemComponent';
 export * from './lib/NearBrewMap';
 export * from './lib/NearBrewCard';
 export * from './lib/NearBrewButton';

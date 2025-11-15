@@ -29,6 +29,12 @@
     },
     {
       "path": "./apps/nearbrew/libs/nearbrew-libs"
+    },
+    {
+      "path": "./apps/venue-service-e2e"
+    },
+    {
+      "path": "./apps/venue-service"
     }
   ]
 }

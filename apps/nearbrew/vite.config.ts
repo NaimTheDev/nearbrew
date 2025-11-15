@@ -14,6 +14,13 @@ export default async () => {
     root: __dirname,
     cacheDir: '../../node_modules/.vite/apps/nearbrew',
     server: {
+      proxy: {
+        '/api': {
+          target: 'http://localhost:3000',
+          changeOrigin: true,
+          rewrite: (path: string) => path.replace(/^\/api/, '')
+        }
+      },
       port: 4200,
       host: 'localhost',
     },
