@@ -1,5 +1,6 @@
 
 import { Venue } from '@nearbrew/shared-types';
+import { useNavigate } from 'react-router-dom';
 import { NearBrewCard } from './NearBrewCard';
 import { Rating } from '@smastrom/react-rating'
 
@@ -41,7 +42,12 @@ function getBusyLevelInfo(busyValue: number) {
 }
 
 export function VenueItemComponent({ venue }: { venue: Venue }) {
+  const navigate = useNavigate();
   const busyInfo = getBusyLevelInfo(venue.day_raw[0]);
+
+  const handleClick = () => {
+    navigate('/details', { state: { venue } });
+  };
 
   // CSS for pulsing animation
   const pulsingDotStyle = {
@@ -63,7 +69,21 @@ export function VenueItemComponent({ venue }: { venue: Venue }) {
           }
         `}
       </style>
-      <NearBrewCard>
+      <NearBrewCard 
+        onClick={handleClick}
+        style={{ 
+          cursor: 'pointer',
+          transition: 'transform 0.2s ease, box-shadow 0.2s ease'
+        }}
+        onMouseEnter={(e: React.MouseEvent<HTMLDivElement>) => {
+          e.currentTarget.style.transform = 'translateY(-2px)';
+          e.currentTarget.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.15)';
+        }}
+        onMouseLeave={(e: React.MouseEvent<HTMLDivElement>) => {
+          e.currentTarget.style.transform = 'translateY(0)';
+          e.currentTarget.style.boxShadow = '0 1px 3px rgba(0, 0, 0, 0.12)';
+        }}
+      >
         <div 
           style={{ 
             minHeight: '120px',
