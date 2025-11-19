@@ -90,6 +90,50 @@ export interface HealthResponse {
   status: 'ok' | 'error';
 }
 
+export interface VenueLiveForecastAnalysis {
+  venue_forecasted_busyness?: number;
+  venue_forecast_busyness_available?: boolean;
+  venue_live_busyness?: number;
+  venue_live_busyness_available?: boolean;
+  venue_live_forecasted_delta?: number;
+  hour_start?: number;
+  hour_start_12?: string;
+  hour_end?: number;
+  hour_end_12?: string;
+}
+
+export interface VenueLiveForecastVenueInfo {
+  venue_current_gmttime?: string;
+  venue_current_localtime?: string;
+  venue_id: string;
+  venue_name: string;
+  venue_address: string;
+  venue_address_list?: string[];
+  venue_timezone?: string;
+  venue_open?: string;
+  venue_dwell_time_min: number;
+  venue_dwell_time_max: number;
+  venue_dwell_time_avg?: number;
+  venue_lat: number;
+  venue_lon: number;
+  rating?: number;
+  reviews?: number;
+  price_level?: number;
+  venue_open_close_v2?: VenueDayInfo['venue_open_close_v2'];
+}
+
+export interface VenueLiveRequest {
+  venue_name?: string;
+  venue_address?: string;
+}
+
+export interface VenueLiveResponse {
+  status: 'OK' | 'Error';
+  message?: string;
+  analysis?: VenueLiveForecastAnalysis;
+  venue_info?: VenueLiveForecastVenueInfo;
+}
+
 export function sharedTypes(): string {
   return 'shared-types';
 }
