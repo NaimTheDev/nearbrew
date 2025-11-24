@@ -2,6 +2,7 @@ import * as path from 'path';
 import { FastifyInstance } from 'fastify';
 import AutoLoad from '@fastify/autoload';
 import fastifyCors from '@fastify/cors';
+import NodeCache from 'node-cache';
 import {
   Venue,
   VenueFilterRequest,
@@ -13,6 +14,21 @@ import {
 
 /* eslint-disable-next-line */
 export interface AppOptions {}
+
+// Initialize cache with 10 minute TTL
+const cache = new NodeCache({ stdTTL: 600 });
+
+// Helper function to calculate distance between two coordinates
+const isNearby = (lat1: number, lon1: number, lat2: number, lon2: number, radiusM: number): boolean => {
+  const R = 6371000; // Earth radius in meters
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = Math.sin(dLat/2) ** 2 + 
+            Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+            Math.sin(dLon/2) ** 2;
+  const distance = 2 * R * Math.asin(Math.sqrt(a));
+  return distance <= radiusM;
+};
 
 // Fake venue data for development - using real JSON structure
 const FAKE_VENUES: Venue[] = [
@@ -777,6 +793,26 @@ export async function app(fastify: FastifyInstance, opts: AppOptions) {
   }>('/venues/filter', async (request, reply) => {
     const { lat, lng, radius } = request.query;
 
+    // Convert query params to numbers
+    const latNum = Number(lat);
+    const lngNum = Number(lng);
+    const radiusNum = Number(radius);
+
+    // Check cache for nearby results
+    // If the incoming request's location is within a cached request's radius,
+    // we can reuse the cached data since it would return similar venues
+    const allKeys = cache.keys();
+    for (const key of allKeys) {
+      const cachedEntry = cache.get<{ lat: number; lng: number; radius: number; data: VenueFilterResponse }>(key);
+      
+      if (cachedEntry && isNearby(latNum, lngNum, cachedEntry.lat, cachedEntry.lng, cachedEntry.radius)) {
+        console.log(`Cache hit for lat: ${lat}, lng: ${lng}, radius: ${radius} (within cached radius of ${cachedEntry.radius}m from cached location)`);
+        return cachedEntry.data;
+      }
+    }
+
+    console.log(`Cache miss for lat: ${lat}, lng: ${lng}, radius: ${radius}`);
+
     try {
       // Build BestTime API URL
       const apiKey = process.env.BEST_TIME_APP_API_KEY;
@@ -808,6 +844,16 @@ export async function app(fastify: FastifyInstance, opts: AppOptions) {
       }
 
       const bestTimeData = await response.json() as VenueFilterResponse;
+      
+      // Store in cache
+      const cacheKey = `${lat}_${lng}_${radius}`;
+      cache.set(cacheKey, {
+        lat: latNum,
+        lng: lngNum,
+        radius: radiusNum,
+        data: bestTimeData
+      });
+      console.log(`Cached result for key: ${cacheKey}`);
       
       // Return the BestTime API response directly as it should match our VenueFilterResponse type
       return bestTimeData;
