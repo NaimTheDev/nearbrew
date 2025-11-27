@@ -9,9 +9,11 @@ export interface UseVenues {
 }
 
 export function useVenues(): UseVenues {
-  const { data = [], isLoading, error } = useQuery<Venue[], Error>({
+  const { data = [], isLoading, error, isFetching, dataUpdatedAt } = useQuery<Venue[], Error>({
     queryKey: ['venues'],
     queryFn: async () => {
+      console.log('🔴 CACHE MISS: Fetching venues from API');
+      
       if (!navigator.geolocation) {
         throw new Error('Geolocation is not supported by this browser');
       }
@@ -26,16 +28,21 @@ export function useVenues(): UseVenues {
 
       const { latitude, longitude } = position.coords;
 
-      return venueService.getVenues({
+      const venues = await venueService.getVenues({
         lat: latitude.toString(),
         lng: longitude.toString(),
         radius: '30000'
       });
+      
+      return venues;
     },
     staleTime: 5 * 60 * 1000
   });
 
-  
+  // Log cache hit when data exists and not currently fetching
+  if (data.length > 0 && !isFetching && !isLoading) {
+    console.log(`🟢 CACHE HIT: Using cached venues (${data.length} venues, last updated: ${new Date(dataUpdatedAt).toLocaleTimeString()})`);
+  }
 
   return { venues: data, loading: isLoading, error };
 }
