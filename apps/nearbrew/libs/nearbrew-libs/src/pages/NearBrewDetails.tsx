@@ -5,7 +5,9 @@ import { StickyBanner } from '../lib/StickyBanner';
 import { NearBrewButton } from '../lib/NearBrewButton';
 import {
   useDailyFlowInsights,
+  useMeetupPlanner,
   useNextBusyTime,
+  useShareInvite,
   useVenueBusyness,
 } from '../hooks';
 import { VenueLocationMap } from '../lib/VenueLocationMap';
@@ -29,7 +31,9 @@ import {
   FiClock,
   FiTrendingUp,
   FiActivity,
+  FiShare2,
   FiStar,
+  FiCalendar,
 } from 'react-icons/fi';
 import { to12HourLabel } from '../utils/time';
 
@@ -56,6 +60,8 @@ export function NearBrewDetails({ venue }: NearBrewDetailsProps) {
     venue.day_raw_whole
   );
   const nextBusyTime = useNextBusyTime(venue.day_raw_whole);
+  const meetupPlan = useMeetupPlanner(venue);
+  const { shareInvite, status: shareStatus } = useShareInvite();
 
   const priceLabel =
     typeof venue.price_level === 'number' && venue.price_level >= 0
@@ -152,6 +158,9 @@ export function NearBrewDetails({ venue }: NearBrewDetailsProps) {
   );
 
   const handleNavigateHome = () => navigate('/');
+  const handleShareMeetup = async () => {
+    await shareInvite(meetupPlan.shareData, meetupPlan.shareClipboardText);
+  };
 
   const busySweep = (busyness.percentage / 100) * 360;
 
@@ -236,6 +245,48 @@ export function NearBrewDetails({ venue }: NearBrewDetailsProps) {
                   <p>{busyness.description}</p>
                 </div>
               </div>
+            </div>
+
+            <div className="rounded-3xl border border-emerald-100 bg-emerald-50/80 p-5 sm:p-6 space-y-4">
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                <div className="space-y-2 text-center lg:text-left">
+                  <p className="text-sm font-semibold text-emerald-700 flex items-center justify-center lg:justify-start gap-2">
+                    <FiCalendar />
+                    Meet at the Best Time
+                  </p>
+                  <p className="text-2xl font-semibold text-emerald-900">
+                    {meetupPlan.quietWindowDescription}
+                  </p>
+                  <p className="text-sm text-emerald-900/80">
+                    {meetupPlan.inviteSupportingCopy}
+                  </p>
+                  <p className="text-xs text-emerald-900/70">
+                    {meetupPlan.nextBusyCopy}
+                  </p>
+                </div>
+                <div className="flex flex-col items-center gap-2 sm:flex-row sm:items-center lg:items-center">
+                  <NearBrewButton
+                    onClick={handleShareMeetup}
+                    className="inline-flex items-center justify-center gap-2 whitespace-nowrap"
+                  >
+                    <FiShare2 />
+                    Plan a Coffee Meet
+                  </NearBrewButton>
+                  <span className="text-xs text-muted-foreground">
+                    Current busyness: {meetupPlan.busynessPercentage}%
+                  </span>
+                </div>
+              </div>
+              {shareStatus === 'copied' && (
+                <p className="text-xs font-medium text-emerald-700 text-center lg:text-left">
+                  Invite copied! Paste it anywhere to spread the word.
+                </p>
+              )}
+              {shareStatus === 'error' && (
+                <p className="text-xs font-medium text-red-600 text-center lg:text-left">
+                  Could not open the share sheet - please try again.
+                </p>
+              )}
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">

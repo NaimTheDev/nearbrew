@@ -2,9 +2,11 @@
 import { Venue } from '@nearbrew/shared-types';
 import { useNavigate } from 'react-router-dom';
 import { NearBrewCard } from './NearBrewCard';
-import { Rating } from '@smastrom/react-rating'
+import { Rating } from '@smastrom/react-rating';
+import { useMeetupPlanner, useShareInvite } from '../hooks';
+import { FiShare2 } from 'react-icons/fi';
 
-import '@smastrom/react-rating/style.css'
+import '@smastrom/react-rating/style.css';
 
 const StarDrawing = (
   <g>
@@ -44,9 +46,19 @@ function getBusyLevelInfo(busyValue: number) {
 export function VenueItemComponent({ venue }: { venue: Venue }) {
   const navigate = useNavigate();
   const busyInfo = getBusyLevelInfo(venue.day_raw[0]);
+  const meetupPlan = useMeetupPlanner(venue);
+  const { shareInvite, status: shareStatus } = useShareInvite();
 
   const handleClick = () => {
     navigate('/details', { state: { venue } });
+  };
+
+  const handlePlanMeetup = async (
+    event: React.MouseEvent<HTMLButtonElement>
+  ) => {
+    event.stopPropagation();
+    event.preventDefault();
+    await shareInvite(meetupPlan.shareData, meetupPlan.shareClipboardText);
   };
 
   // CSS for pulsing animation
@@ -171,6 +183,56 @@ export function VenueItemComponent({ venue }: { venue: Venue }) {
               readOnly
             />
           </div>
+
+          <div
+            style={{
+              marginTop: '12px',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              gap: '12px',
+              flexWrap: 'wrap'
+            }}
+          >
+            <div style={{ fontSize: '11px', color: '#475569' }}>
+              <p style={{ margin: 0, fontWeight: 600 }}>Quiet window</p>
+              <p style={{ margin: 0 }}>
+                {meetupPlan.quietWindowLabel ?? 'Analyzing today\'s data'}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={handlePlanMeetup}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '6px 12px',
+                borderRadius: '9999px',
+                border: '1px solid #059669',
+                backgroundColor: '#ECFDF5',
+                color: '#047857',
+                fontSize: '11px',
+                fontWeight: 600,
+                textTransform: 'uppercase',
+                letterSpacing: '0.02em',
+                cursor: 'pointer',
+              }}
+            >
+              <FiShare2 size={12} />
+              Plan a Coffee Meet
+            </button>
+          </div>
+          {shareStatus === 'copied' && (
+            <p style={{ margin: '6px 0 0 0', fontSize: '10px', color: '#047857' }}>
+              Invite copied! Share it with your crew.
+            </p>
+          )}
+          {shareStatus === 'error' && (
+            <p style={{ margin: '6px 0 0 0', fontSize: '10px', color: '#dc2626' }}>
+              Couldn&apos;t open sharing - try again.
+            </p>
+          )}
         </div>
       </NearBrewCard>
     </>
