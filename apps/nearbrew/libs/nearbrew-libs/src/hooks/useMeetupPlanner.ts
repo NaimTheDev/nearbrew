@@ -30,7 +30,7 @@ const buildShareUrl = (venueId: string) => {
       ? window.location.origin
       : DEFAULT_SHARE_BASE_URL;
   const encodedId = encodeURIComponent(venueId);
-  return `${base}/?venueId=${encodedId}`;
+  return `${base}/details?venueId=${encodedId}`;
 };
 
 export interface MeetupPlannerResult {

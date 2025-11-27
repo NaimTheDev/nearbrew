@@ -4,6 +4,7 @@ import AutoLoad from '@fastify/autoload';
 import fastifyCors from '@fastify/cors';
 import NodeCache from 'node-cache';
 import {
+  Venue,
   VenueFilterRequest,
   VenueFilterResponse,
   VenueLiveRequest,
@@ -108,6 +109,12 @@ export async function app(fastify: FastifyInstance, opts: AppOptions) {
         data: bestTimeData
       });
       console.log(`Cached result for key: ${cacheKey}`);
+
+      if (Array.isArray(bestTimeData.venues)) {
+        for (const venue of bestTimeData.venues) {
+          cache.set(`venue:${venue.venue_id}`, venue);
+        }
+      }
       
       // Return the BestTime API response directly as it should match our VenueFilterResponse type
       return bestTimeData;
@@ -169,6 +176,37 @@ export async function app(fastify: FastifyInstance, opts: AppOptions) {
             : 'Unable to fetch live data for this venue.'
       };
     }
+  });
+
+  fastify.get<{
+    Params: { venueId: string };
+    Reply:
+      | { status: 'ok'; venue: Venue }
+      | { status: 'not_found' | 'error'; message: string };
+  }>('/venues/:venueId', async (request, reply) => {
+    const { venueId } = request.params;
+
+    if (!venueId) {
+      reply.status(400);
+      return {
+        status: 'error',
+        message: 'venueId is required'
+      };
+    }
+
+    const cachedVenue = cache.get<Venue>(`venue:${venueId}`);
+    if (cachedVenue) {
+      return {
+        status: 'ok',
+        venue: cachedVenue
+      };
+    }
+
+    reply.status(404);
+    return {
+      status: 'not_found',
+      message: 'We could not find this venue in the current cache window.'
+    };
   });
   fastify.register(AutoLoad, {
     dir: path.join(__dirname, 'plugins'),
