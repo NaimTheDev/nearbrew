@@ -1,0 +1,9 @@
+node_modules
+**/node_modules
+apps/**/dist
+libs/**/dist
+.nx
+.tmp
+coverage
+.DS_Store
+.git
