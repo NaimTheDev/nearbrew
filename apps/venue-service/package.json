@@ -75,6 +75,15 @@
         ],
         "executor": "nx:noop"
       },
+      "docker-build": {
+        "dependsOn": [
+          "prune"
+        ],
+        "executor": "@nx/workspace:run-commands",
+        "options": {
+          "command": "docker build -f apps/venue-service/Dockerfile -t venue-service ."
+        }
+      },
       "serve": {
         "continuous": true,
         "executor": "@nx/js:node",
