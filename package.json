@@ -9,7 +9,7 @@
     "test": "nx test",
     "lint": "nx lint",
     "e2e": "nx e2e",
-    "deploy": "nx build nearbrew && cp apps/nearbrew/dist/index.html apps/nearbrew/dist/404.html && gh-pages -d apps/nearbrew/dist"
+    "deploy": "nx build @nearbrew/nearbrew --skip-nx-cache && cp apps/nearbrew/dist/index.html apps/nearbrew/dist/404.html && gh-pages -d apps/nearbrew/dist -r https://github.com/NaimTheDev/nearbrew.git"
   },
   "private": true,
   "dependencies": {

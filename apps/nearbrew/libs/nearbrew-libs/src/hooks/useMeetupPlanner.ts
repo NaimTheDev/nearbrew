@@ -3,7 +3,7 @@ import { Venue } from '@nearbrew/shared-types';
 import { useDailyFlowInsights } from './useDailyFlowInsights';
 import { useNextBusyTime } from './useNextBusyTime';
 
-const DEFAULT_SHARE_BASE_URL = 'https://nearbrew.app';
+const DEFAULT_SHARE_BASE_URL = 'https://naimthedev.github.io/nearbrew';
 
 const clamp = (value: number, min = 0, max = 100) =>
   Math.min(Math.max(value, min), max);
@@ -26,9 +26,7 @@ const toFriendlyWindow = (windowLabel: string | null | undefined) => {
 
 const buildShareUrl = (venueId: string) => {
   const base =
-    typeof window !== 'undefined' && window.location?.origin
-      ? window.location.origin
-      : DEFAULT_SHARE_BASE_URL;
+     DEFAULT_SHARE_BASE_URL;
   const encodedId = encodeURIComponent(venueId);
   return `${base}/details?venueId=${encodedId}`;
 };

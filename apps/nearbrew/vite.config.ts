@@ -14,7 +14,7 @@ export default async ({ mode }: { mode: string }) => {
   return {
     root: __dirname,
     cacheDir: '../../node_modules/.vite/apps/nearbrew',
-    base: isProduction ? './' : '/',
+    base: isProduction ? '/nearbrew/' : '/',
     server: {
       proxy: {
         '/api': {
