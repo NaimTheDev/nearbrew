@@ -5,18 +5,21 @@ WORKDIR /workspace
 # Avoid starting the Nx daemon inside Docker
 ENV NX_DAEMON=false
 
+# Copy the full workspace first (respecting .dockerignore)
+COPY . .
+
 # Install root dependencies so Nx can run build targets
-COPY package*.json ./
+# This will also set up workspace symlinks in node_modules
 RUN npm ci --ignore-scripts
 
-# Copy the full workspace (respecting .dockerignore) and create a pruned production build
-COPY . .
+# Create a pruned production build
 RUN npx nx run @nearbrew/venue-service:prune --configuration=production
 
 # Runtime stage: install only runtime dependencies using the pruned lockfile
 FROM node:20-slim AS runner
 WORKDIR /app
 ENV NODE_ENV=production
+ENV NODE_PATH=/app/workspace_modules
 
 # Use the pruned package metadata produced during the build stage
 COPY --from=builder /workspace/apps/venue-service/dist/package*.json ./
