@@ -375,7 +375,7 @@ export function NearBrewSearchResults() {
     Boolean(searchResult.analysis) &&
     Boolean(searchResult.venue_info);
 
-  let content: JSX.Element;
+  let content: React.ReactElement;
 
   if (!searchResult) {
     content = (

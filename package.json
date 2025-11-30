@@ -9,7 +9,7 @@
     "test": "nx test",
     "lint": "nx lint",
     "e2e": "nx e2e",
-    "deploy": "nx build nearbrew && gh-pages -d dist/apps/nearbrew"
+    "deploy": "nx build nearbrew && cp apps/nearbrew/dist/index.html apps/nearbrew/dist/404.html && gh-pages -d apps/nearbrew/dist"
   },
   "private": true,
   "dependencies": {

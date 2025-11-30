@@ -13,7 +13,7 @@ const hasClipboard = () =>
 
 export function useShareInvite() {
   const [status, setStatus] = useState<ShareInviteStatus>('idle');
-  const timeoutRef = useRef<number>();
+  const timeoutRef = useRef<number | undefined>(undefined);
 
   const clearTimer = useCallback(() => {
     if (timeoutRef.current) {

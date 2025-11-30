@@ -4,6 +4,7 @@ import GooglePlacesAutocomplete from 'react-google-places-autocomplete';
 import { FiAlertCircle, FiSearch } from 'react-icons/fi';
 import { searchService } from '../services/searchService';
 import { NearBrewButton } from './NearBrewButton';
+import { config } from '../config';
 
 type PlaceOption = {
   label: string;
@@ -25,6 +26,8 @@ export function NearBrewAutoComplete() {
   const [selectedPlace, setSelectedPlace] = useState<PlaceOption | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const googleMapsApiKey = config.googleMapsApiKey;
+  const isPlacesEnabled = Boolean(googleMapsApiKey);
 
   const handlePlaceSelect = (place: PlaceOption | null) => {
     setSelectedPlace(place);
@@ -83,7 +86,7 @@ export function NearBrewAutoComplete() {
     }
   };
 
-  const searchDisabled = !selectedPlace || isLoading;
+  const searchDisabled = !selectedPlace || isLoading || !isPlacesEnabled;
 
   return (
     <div className="space-y-3">
@@ -93,46 +96,55 @@ export function NearBrewAutoComplete() {
             Search for a coffee shop
           </label>
           <div className="bg-white/90 border border-border rounded-2xl shadow-inner">
-            <GooglePlacesAutocomplete
-              selectProps={{
-                value: selectedPlace,
-                onChange: handlePlaceSelect,
-                placeholder: 'Try “Qahwah House” or an address',
-                onKeyDown: handleKeyDown,
-                isDisabled: isLoading,
-                styles: {
-                  container: (provided) => ({
-                    ...provided,
-                    width: '100%',
-                  }),
-                  control: (provided, state) => ({
-                    ...provided,
-                    backgroundColor: 'transparent',
-                    border: 'none',
-                    boxShadow: 'none',
-                    minHeight: '64px',
-                    padding: '8px 4px',
-                    opacity: state.isDisabled ? 0.6 : 1,
-                  }),
-                  valueContainer: (provided) => ({
-                    ...provided,
-                    padding: '0 8px',
-                  }),
-                  input: (provided) => ({
-                    ...provided,
-                    fontSize: '1rem',
-                    fontWeight: 500,
-                    color: '#4b2e17',
-                  }),
-                  menu: (provided) => ({
-                    ...provided,
-                    zIndex: 20,
-                    borderRadius: '20px',
-                    overflow: 'hidden',
-                  }),
-                },
-              }}
-            />
+            {isPlacesEnabled ? (
+              <GooglePlacesAutocomplete
+                apiKey={googleMapsApiKey}
+                selectProps={{
+                  value: selectedPlace,
+                  onChange: handlePlaceSelect,
+                  placeholder: 'Try “Qahwah House” or an address',
+                  onKeyDown: handleKeyDown,
+                  isDisabled: isLoading,
+                  styles: {
+                    container: (provided) => ({
+                      ...provided,
+                      width: '100%',
+                    }),
+                    control: (provided, state) => ({
+                      ...provided,
+                      backgroundColor: 'transparent',
+                      border: 'none',
+                      boxShadow: 'none',
+                      minHeight: '64px',
+                      padding: '8px 4px',
+                      opacity: state.isDisabled ? 0.6 : 1,
+                    }),
+                    valueContainer: (provided) => ({
+                      ...provided,
+                      padding: '0 8px',
+                    }),
+                    input: (provided) => ({
+                      ...provided,
+                      fontSize: '1rem',
+                      fontWeight: 500,
+                      color: '#4b2e17',
+                    }),
+                    menu: (provided) => ({
+                      ...provided,
+                      zIndex: 20,
+                      borderRadius: '20px',
+                      overflow: 'hidden',
+                    }),
+                  },
+                }}
+              />
+            ) : (
+              <div className="px-4 py-6 text-sm text-red-500 flex items-center gap-2">
+                <FiAlertCircle />
+                Configure the `VITE_GOOGLE_MAPS_API_KEY` environment variable to enable Google Places
+                search.
+              </div>
+            )}
           </div>
         </div>
         <NearBrewButton
@@ -144,7 +156,7 @@ export function NearBrewAutoComplete() {
         </NearBrewButton>
       </div>
 
-      {error && (
+      {error && isPlacesEnabled && (
         <p className="text-sm text-red-500 flex items-center gap-2">
           <FiAlertCircle />
           {error}

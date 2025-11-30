@@ -7,13 +7,14 @@ const __dirname = dirname(__filename);
 
 // Export an async function and use dynamic import for ESM-only plugins
 // to avoid require() on ESM when transpiled by SWC/ts-node.
-export default async () => {
+export default async ({ mode }: { mode: string }) => {
   const { default: react } = await import('@vitejs/plugin-react');
+  const isProduction = mode === 'production';
 
   return {
     root: __dirname,
     cacheDir: '../../node_modules/.vite/apps/nearbrew',
-    base: process.env.NODE_ENV === 'production' ? '/nearbrew/' : '/',
+    base: isProduction ? './' : '/',
     server: {
       proxy: {
         '/api': {
