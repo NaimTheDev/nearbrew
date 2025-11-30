@@ -16,7 +16,7 @@ const root = ReactDOM.createRoot(
 root.render(
   <StrictMode>
     <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
+      <BrowserRouter basename={import.meta.env.BASE_URL}>
         <Routes>
           <Route path="/" element={<App />} />
           <Route path="/details" element={<NearBrewDetailsPage />} />

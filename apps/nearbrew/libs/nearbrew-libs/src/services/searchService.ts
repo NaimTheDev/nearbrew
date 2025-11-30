@@ -1,4 +1,5 @@
 import { VenueLiveRequest, VenueLiveResponse } from '@nearbrew/shared-types';
+import { config } from '../config';
 
 export const searchService = {
   async fetchLiveForecast(params: VenueLiveRequest): Promise<VenueLiveResponse> {
@@ -11,7 +12,7 @@ export const searchService = {
       searchParams.append('venue_address', params.venue_address);
     }
 
-    const response = await fetch(`/api/venues/live-forecast?${searchParams}`, {
+    const response = await fetch(`${config.apiBaseUrl}/venues/live-forecast?${searchParams}`, {
       method: 'POST',
     });
 

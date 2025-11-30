@@ -1,4 +1,5 @@
 import { Venue, VenueFilterResponse, VenueFilterRequest } from '@nearbrew/shared-types';
+import { config } from '../config';
 
 interface VenueLookupResponse {
   status: 'ok';
@@ -19,13 +20,13 @@ export const venueService = {
       }
     }
 
-    const response = await fetch(`/api/venues/filter?${searchParams.toString()}`);
+    const response = await fetch(`${config.apiBaseUrl}/venues/filter?${searchParams.toString()}`);
     const data = await response.json() as VenueFilterResponse;
     return data.venues;
   },
 
   async getVenueById(venueId: string): Promise<Venue | null> {
-    const response = await fetch(`/api/venues/${encodeURIComponent(venueId)}`);
+    const response = await fetch(`${config.apiBaseUrl}/venues/${encodeURIComponent(venueId)}`);
 
     if (response.status === 404) {
       return null;
