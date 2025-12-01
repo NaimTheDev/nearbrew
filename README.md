@@ -100,6 +100,8 @@ cache.set(`venue:${venue.venue_id}`, venue);
 
 #### The Challenge
 Longer cache periods (10 minutes) **reduce API costs** but can lead to **stale busyness data** on initial page load, especially for rapidly changing venues.
+In addition, BestTime radius endpoint is cached for an hour long duration by default as well
+
 
 #### The Solution: Dual Data Paths
 1. **Cached Browse Experience**: Initial page load shows venues from cache (may be up to 10 minutes old)
@@ -118,10 +120,6 @@ POST /venues/live-forecast? venue_name=${name}&venue_address=${address}
 ```
 
 ### 📊 Caching Impact
-Based on the logs in your screenshots:
-- **Multiple cache hits** within 30km radius zones
-- **Significant credit savings**: Reduces BestTime API calls by ~70-80%
-- **User experience**: Sub-second response times for cached requests
 
 ### 📊 Caching Impact - Client Side
 <img width="450" height="40" alt="Screenshot 2025-11-30 at 6 32 50 PM" src="https://github.com/user-attachments/assets/1dd89c0c-7db9-4038-92c3-48da721cdf51" />
