@@ -25,20 +25,20 @@ function getBusyLevelInfo(busyValue: number) {
   if (busyValue <= 33) {
     return {
       level: 'Not busy at all',
-      color: '#22C55E', // Green
-      bgColor: 'rgba(34, 197, 94, 0.1)' // Light green background
+      color: '#22C55E', 
+      bgColor: 'rgba(34, 197, 94, 0.1)' 
     };
   } else if (busyValue <= 66) {
     return {
       level: 'A little busy',
-      color: '#EAB308', // Mustard yellow
-      bgColor: 'rgba(234, 179, 8, 0.1)' // Light yellow background
+      color: '#EAB308', 
+      bgColor: 'rgba(234, 179, 8, 0.1)' 
     };
   } else {
     return {
       level: 'Poppin!',
-      color: '#EF4444', // Soft red
-      bgColor: 'rgba(239, 68, 68, 0.1)' // Light red background
+      color: '#EF4444', 
+      bgColor: 'rgba(239, 68, 68, 0.1)' 
     };
   }
 }
