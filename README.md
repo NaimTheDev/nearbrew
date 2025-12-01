@@ -16,7 +16,8 @@ NearBrew is a full-stack web application that helps coffee lovers discover nearb
 - Interactive map visualization powered by Leaflet and OpenStreetMap
 - Automatic user positioning with fallback handling
 
-<img width="1020" height="1143" alt="SCR-20251130-qurx" src="https://github.com/user-attachments/assets/039e385a-5ba7-48e0-9d11-c62abe891a85" />
+<img width="1020" height="1143" alt="SCR-20251130-qurx" src="https://github.com/user-attachments/assets/bf117d4b-1bb1-4b54-bd63-e6deb74bd0e1" />
+
 
 ### 🔍 Smart Search
 - **Google Places Autocomplete** integration for instant venue discovery
@@ -24,7 +25,7 @@ NearBrew is a full-stack web application that helps coffee lovers discover nearb
 - Venue details including ratings, reviews, price level, and dwell time
 - Opening hours with multi-timezone support
 
-<img width="1030" height="719" alt="SCR-20251130-rbai" src="https://github.com/user-attachments/assets/ec9ec080-5bc0-464e-971e-2ccd3c82ab20" />
+<img width="1030" height="719" alt="SCR-20251130-rbai" src="https://github.com/user-attachments/assets/8327f0b0-68a0-438f-90ca-a5da24c02987" />
 
 
 ### ⚡ Live Busyness Intelligence
