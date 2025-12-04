@@ -4,6 +4,7 @@ import {
   NearBrewMap,
   VenueItemListComponent,
   NearBrewAutoComplete,
+  BuyMeACoffeeButton,
 } from '../../libs/nearbrew-libs/src';
 
 export function App() {
@@ -30,6 +31,10 @@ export function App() {
           <NearBrewMap height={350} />
           <VenueItemListComponent />
         </NearBrewCard>
+      </div>
+
+      <div className="fixed inset-x-0 bottom-4 flex justify-center sm:hidden px-4">
+        <BuyMeACoffeeButton />
       </div>
     </div>
   );
