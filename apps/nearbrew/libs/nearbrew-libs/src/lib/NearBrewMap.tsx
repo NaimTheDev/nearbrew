@@ -4,8 +4,6 @@ import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import { FaCoffee } from 'react-icons/fa';
 import { renderToString } from 'react-dom/server';
-import { useQueryClient } from '@tanstack/react-query';
-import { NearBrewButton } from './NearBrewButton';
 
 type IconDefaultPrototype = typeof L.Icon.Default.prototype & {
   _getIconUrl?: () => string;
@@ -57,9 +55,6 @@ function LocationMarker({ icon }: LocationMarkerProps) {
 
 export function NearBrewMap({ className = '', height = 400 }: NearBrewMapProps) {
   const [userPosition, setUserPosition] = useState<[number, number] | null>(null);
-  const [locationError, setLocationError] = useState<string | null>(null);
-  const [isRequestingLocation, setIsRequestingLocation] = useState(false);
-  const queryClient = useQueryClient();
   
   const fallbackPosition: [number, number] = [51.505, -0.09];
   
@@ -68,12 +63,10 @@ export function NearBrewMap({ className = '', height = 400 }: NearBrewMapProps) 
       navigator.geolocation.getCurrentPosition(
         (position) => {
           setUserPosition([position.coords.latitude, position.coords.longitude]);
-          setLocationError(null);
         },
         (error) => {
           console.warn('Geolocation error:', error.message);
           setUserPosition(fallbackPosition);
-          setLocationError(error.message);
         },
         {
           enableHighAccuracy: true,
@@ -88,33 +81,6 @@ export function NearBrewMap({ className = '', height = 400 }: NearBrewMapProps) 
 
 
   const mapCenter = userPosition || fallbackPosition;
-
-  const requestUserLocation = () => {
-    if (!navigator.geolocation) {
-      setLocationError('Geolocation is not supported by this browser');
-      return;
-    }
-
-    setIsRequestingLocation(true);
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        const coords: [number, number] = [position.coords.latitude, position.coords.longitude];
-        setUserPosition(coords);
-        setLocationError(null);
-        queryClient.invalidateQueries({ queryKey: ['venues'] });
-        setIsRequestingLocation(false);
-      },
-      (error) => {
-        setLocationError(error.message || 'Unable to retrieve location');
-        setIsRequestingLocation(false);
-      },
-      {
-        enableHighAccuracy: true,
-        timeout: 10000,
-        maximumAge: 300000,
-      }
-    );
-  };
 
   const coffeeMarkerIcon = useMemo(
     () =>
@@ -172,21 +138,7 @@ export function NearBrewMap({ className = '', height = 400 }: NearBrewMapProps) 
         </Marker>
         <LocationMarker icon={coffeeMarkerIcon} />
       </MapContainer>
-      <div className="absolute right-4 top-4 z-40 flex flex-col items-end gap-2">
-        <NearBrewButton
-          size="sm"
-          variant="secondary"
-          onClick={requestUserLocation}
-          disabled={isRequestingLocation}
-        >
-          {isRequestingLocation ? 'Updating location...' : 'Use my location'}
-        </NearBrewButton>
-        {locationError && (
-          <div className="rounded-lg bg-white/90 px-3 py-2 text-xs text-red-700 shadow-md max-w-xs text-right">
-            {locationError}
-          </div>
-        )}
-      </div>
+
       <div className="pointer-events-none absolute inset-0 z-10" aria-hidden="true" />
       <div className="pointer-events-none absolute inset-4 z-20" aria-hidden="true" />
       <div className="absolute bottom-5 left-1/2 z-30 -translate-x-1/2">

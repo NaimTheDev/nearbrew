@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import {
   NearBrewCard,
   StickyBanner,
@@ -5,9 +6,38 @@ import {
   VenueItemListComponent,
   NearBrewAutoComplete,
   BuyMeACoffeeButton,
+  NearBrewButton,
 } from '../../libs/nearbrew-libs/src';
 
 export function App() {
+  const [isRequestingLocation, setIsRequestingLocation] = useState(false);
+  const [locationError, setLocationError] = useState<string | null>(null);
+
+  const requestUserLocation = () => {
+    if (!navigator.geolocation) {
+      setLocationError('Geolocation is not supported by this browser');
+      return;
+    }
+
+    setIsRequestingLocation(true);
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setLocationError(null);
+        setIsRequestingLocation(false);
+        // You can add logic here to update the map or do something with the coordinates
+        console.log('Location:', position.coords.latitude, position.coords.longitude);
+      },
+      (error) => {
+        setLocationError(error.message || 'Unable to retrieve location');
+        setIsRequestingLocation(false);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 300000,
+      }
+    );
+  };
   return (
     <div className="min-h-screen bg-background text-foreground">
       <StickyBanner />
@@ -29,6 +59,24 @@ export function App() {
           </div>
           <NearBrewAutoComplete />
           <NearBrewMap height={350} />
+          
+          {/* Location button below the map */}
+          <div className="flex flex-col items-center gap-2">
+            <NearBrewButton
+              size="md"
+              variant="secondary"
+              onClick={requestUserLocation}
+              disabled={isRequestingLocation}
+            >
+              {isRequestingLocation ? 'Updating location...' : '📍 Use my location'}
+            </NearBrewButton>
+            {locationError && (
+              <div className="rounded-lg bg-red-50 px-4 py-2 text-sm text-red-700 shadow-sm max-w-md text-center">
+                {locationError}
+              </div>
+            )}
+          </div>
+
           <VenueItemListComponent />
         </NearBrewCard>
       </div>
