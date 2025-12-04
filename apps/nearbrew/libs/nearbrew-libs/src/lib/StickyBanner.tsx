@@ -1,4 +1,5 @@
 import { FaCoffee } from 'react-icons/fa';
+import { BuyMeACoffeeButton } from './BuyMeACoffeeButton';
 
 export function StickyBanner() {
   return (
@@ -19,9 +20,9 @@ export function StickyBanner() {
         </div>
         
        
-        <a href="https://www.buymeacoffee.com/naimabubakh" target="_blank" rel="noopener noreferrer">
-          <img src="https://img.buymeacoffee.com/button-api/?text=Buy me a coffee&emoji=☕&slug=naimabubakh&button_colour=c57b49&font_colour=000000&font_family=Cookie&outline_colour=000000&coffee_colour=FFDD00" alt="Buy me a coffee" />
-        </a>
+        <div className="hidden sm:block">
+          <BuyMeACoffeeButton />
+        </div>
       </div>
     </div>
   );

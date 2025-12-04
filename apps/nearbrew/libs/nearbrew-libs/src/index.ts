@@ -9,6 +9,7 @@ export * from './lib/NearBrewCard';
 export * from './lib/NearBrewButton';
 export * from './lib/NearBrewCard';
 export * from './lib/StickyBanner';
+export * from './lib/BuyMeACoffeeButton';
 export * from './lib/VenueLocationMap';
 export * from './lib/nearbrew-libs';
 export * from './hooks';
