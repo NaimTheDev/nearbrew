@@ -1,5 +1,5 @@
 
-import { useVenues } from '../lib/useVenues';
+import { useVenues, type VenueSearchCoords } from '../lib/useVenues';
 import { VenueItemComponent } from './VenueItemComponent'; 
 
 const ROWS_PER_VIEW = 2;
@@ -10,8 +10,8 @@ const CARD_MIN_WIDTH = 400;
 const GRID_COLUMN_WIDTH = `calc((100% - ${(COLUMNS_PER_VIEW - 1) * CARD_GAP}px) / ${COLUMNS_PER_VIEW})`;
 const GRID_AUTO_COLUMN = `minmax(${CARD_MIN_WIDTH}px, ${GRID_COLUMN_WIDTH})`;
 
-export function VenueItemListComponent() {
-  const { venues, loading, error } = useVenues();
+export function VenueItemListComponent({ coords }: { coords?: VenueSearchCoords }) {
+  const { venues, loading, error } = useVenues(coords);
 
   if (loading) return <div>Loading...</div>;
   if (error) return <div>Error: {error.message}</div>;

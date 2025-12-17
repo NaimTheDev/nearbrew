@@ -12,6 +12,7 @@ import {
 export function App() {
   const [isRequestingLocation, setIsRequestingLocation] = useState(false);
   const [locationError, setLocationError] = useState<string | null>(null);
+  const [searchCoords, setSearchCoords] = useState<{ lat: string; lng: string; radius?: string } | null>(null);
 
   const requestUserLocation = () => {
     if (!navigator.geolocation) {
@@ -26,6 +27,8 @@ export function App() {
         setIsRequestingLocation(false);
         // You can add logic here to update the map or do something with the coordinates
         console.log('Location:', position.coords.latitude, position.coords.longitude);
+        // Reset any manual search override to return to local venues
+        setSearchCoords(null);
       },
       (error) => {
         setLocationError(error.message || 'Unable to retrieve location');
@@ -57,7 +60,11 @@ export function App() {
               picks below.
             </p>
           </div>
-          <NearBrewAutoComplete />
+          <NearBrewAutoComplete
+            onGeocodeSearch={(coords: { lat: number; lng: number; radius?: string }) =>
+              setSearchCoords({ lat: coords.lat.toString(), lng: coords.lng.toString(), radius: coords.radius ?? '30000' })
+            }
+          />
           <NearBrewMap height={350} />
           
           {/* Location button below the map */}
@@ -77,7 +84,7 @@ export function App() {
             )}
           </div>
 
-          <VenueItemListComponent />
+          <VenueItemListComponent coords={searchCoords ?? undefined} />
         </NearBrewCard>
       </div>
 

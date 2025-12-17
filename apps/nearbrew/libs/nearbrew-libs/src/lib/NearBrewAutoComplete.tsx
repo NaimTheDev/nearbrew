@@ -1,6 +1,6 @@
 import { useCallback, useState, type KeyboardEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
-import GooglePlacesAutocomplete from 'react-google-places-autocomplete';
+import GooglePlacesAutocomplete, {getLatLng, geocodeByPlaceId} from 'react-google-places-autocomplete';
 import { FiAlertCircle, FiSearch } from 'react-icons/fi';
 import { searchService } from '../services/searchService';
 import { NearBrewButton } from './NearBrewButton';
@@ -10,18 +10,23 @@ type PlaceOption = {
   label: string;
   value: {
     description?: string;
-    place_id?: string;
+    place_id: string;
     structured_formatting?: {
       main_text?: string;
       secondary_text?: string;
     };
+    types: string[];
   };
 };
 
 const buttonClasses =
   'flex items-center justify-center gap-2 whitespace-nowrap bg-[#c47a3d] hover:bg-[#b06c35] text-white shadow-lg shadow-[#c47a3d]/40';
 
-export function NearBrewAutoComplete() {
+export function NearBrewAutoComplete({
+  onGeocodeSearch,
+}: {
+  onGeocodeSearch?: (coords: { lat: number; lng: number; radius?: string }) => void;
+}) {
   const navigate = useNavigate();
   const [selectedPlace, setSelectedPlace] = useState<PlaceOption | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -39,6 +44,7 @@ export function NearBrewAutoComplete() {
       setError('Pick a coffee shop to see how busy it is.');
       return;
     }
+    console.log(selectedPlace);
 
     const formatting = selectedPlace.value?.structured_formatting;
     const venueName = formatting?.main_text ?? selectedPlace.label ?? '';
@@ -54,6 +60,24 @@ export function NearBrewAutoComplete() {
 
     setIsLoading(true);
     try {
+      const types = selectedPlace.value?.types ?? [];
+      const placeId = selectedPlace.value?.place_id;
+
+      // If the selected place is an address (types includes 'geocode'), resolve lat/lng and update main page results
+      if (placeId && types.includes('geocode')) {
+        try {
+          const results = await geocodeByPlaceId(placeId);
+          if (results && results.length > 0) {
+            const { lat, lng } = await getLatLng(results[0]);
+            onGeocodeSearch?.({ lat, lng, radius: '30000' });
+            return; // Do not proceed to live forecast navigation
+          }
+        } catch {
+          // If geocoding fails, fall through to live forecast flow as a fallback
+        }
+      }
+
+      // Default path: live forecast for a specific venue
       const searchResult = await searchService.fetchLiveForecast({
         venue_name: venueName,
         venue_address: venueAddress,

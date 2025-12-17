@@ -8,12 +8,25 @@ export interface UseVenues {
   error: Error | null;
 }
 
-export function useVenues(): UseVenues {
+export type VenueSearchCoords = { lat: string; lng: string; radius?: string };
+
+export function useVenues(coords?: VenueSearchCoords): UseVenues {
   const { data = [], isLoading, error, isFetching, dataUpdatedAt } = useQuery<Venue[], Error>({
-    queryKey: ['venues'],
+    queryKey: ['venues', coords?.lat ?? null, coords?.lng ?? null, coords?.radius ?? null],
     queryFn: async () => {
       console.log('🔴 CACHE MISS: Fetching venues from API');
       
+      if (coords?.lat && coords?.lng) {
+        // Use provided coordinates (from a geocoded address search)
+        const venues = await venueService.getVenues({
+          lat: coords.lat,
+          lng: coords.lng,
+          radius: coords.radius ?? '30000',
+        });
+        return venues;
+      }
+
+      // Fall back to browser geolocation
       if (!navigator.geolocation) {
         throw new Error('Geolocation is not supported by this browser');
       }
