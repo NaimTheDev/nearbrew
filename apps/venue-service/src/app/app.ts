@@ -25,8 +25,11 @@ type BestTimeSearchResponse = {
 
 type BestTimeProgressResponse = {
   job_finished: boolean;
-  venues: Venue[];
-};
+ status: string;
+  _links?: {
+    venue_filter_api: string; // url to fetch filtered venues
+    radar_tool: string;
+  }};
 
 // Helper function to calculate distance between two coordinates
 const isNearby = (lat1: number, lon1: number, lat2: number, lon2: number, radiusM: number): boolean => {
@@ -63,7 +66,7 @@ const pollForResults = async (jobId: string): Promise<Venue[]> => {
   const progressUrl = new URL('https://besttime.app/api/v1/venues/progress');
   progressUrl.searchParams.append('job_id', jobId);
 
-  const maxRetries = 10;
+  const maxRetries = 20;
   const delayMs = 2000;
 
   for (let attempt = 0; attempt < maxRetries; attempt++) {
@@ -76,7 +79,22 @@ const pollForResults = async (jobId: string): Promise<Venue[]> => {
     const data = (await response.json()) as BestTimeProgressResponse;
 
     if (data.job_finished) {
-      return data.venues ?? [];
+      if (data._links?.venue_filter_api) {
+    let venueFilterApiUrl = data._links.venue_filter_api;
+
+    
+    venueFilterApiUrl += `&api_key_private=${process.env.BEST_TIME_APP_API_KEY}`;
+
+        const venueResponse = await fetch(venueFilterApiUrl);
+        if (!venueResponse.ok) {
+          throw new Error(`Venue filter fetch failed with status ${venueResponse.status}`);
+        }
+        const venueData = (await venueResponse.json()) as VenueFilterResponse;
+        return venueData.venues;
+      } else {
+        throw new Error('Venue filter API link not found in progress response');
+      }
+    
     }
 
     await delay(delayMs);
@@ -100,7 +118,7 @@ const getVenuesForLocation = async (
   bestTimeUrl.searchParams.append('busy_min', '50');
   bestTimeUrl.searchParams.append('busy_max', '100');
   bestTimeUrl.searchParams.append('live', 'true');
-  bestTimeUrl.searchParams.append('types', 'CAFE,COFFEE');
+  bestTimeUrl.searchParams.append('types', 'CAFE,COFFEE,BAKERY');
   bestTimeUrl.searchParams.append('lat', lat.toString());
   bestTimeUrl.searchParams.append('lng', lng.toString());
   bestTimeUrl.searchParams.append('radius', radius.toString());
@@ -124,24 +142,24 @@ const getVenuesForLocation = async (
     }
   }
 
-  if (filterResponse.status !== 404 && filterResponse.ok) {
+  if ((filterResponse.status !== 404) && filterResponse.ok) {
     // An OK response with empty venues falls through to seeding; other non-404 errors bubble up.
   } else if (!filterResponse.ok && filterResponse.status !== 404) {
     throw new Error(`BestTime API returned ${filterResponse.status}: ${filterResponse.statusText}`);
   }
 
-  const searchResponse = await fetch('https://besttime.app/api/v1/venues/search', {
+  const params = new URLSearchParams({
+    api_key_private: apiKey,
+    q: 'cafes and coffee shops',
+    lat: lat.toString(),
+    lng: lng.toString(),
+    radius: radius.toString(),
+    fast: 'true',
+    format: 'raw',
+  });
+
+  const searchResponse = await fetch(`https://besttime.app/api/v1/venues/search?${params}`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      api_key_private: apiKey,
-      q: 'cafes and coffee shops',
-      lat,
-      lng,
-      radius,
-      fast: 'true',
-      format: 'raw',
-    }),
   });
 
   if (!searchResponse.ok) {

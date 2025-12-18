@@ -44,7 +44,7 @@ export function useVenues(coords?: VenueSearchCoords): UseVenues {
       const venues = await venueService.getVenues({
         lat: latitude.toString(),
         lng: longitude.toString(),
-        radius: '30000'
+        radius: '9000'
       });
       
       return venues;
