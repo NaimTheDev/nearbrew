@@ -409,7 +409,7 @@ export function NearBrewSearchResults() {
         venueAddress={displayAddress}
         rating={searchResult.venue_info?.rating}
         reviews={searchResult.venue_info?.reviews}
-        statusLabel="Status: No live data available"
+        statusLabel="Status: No live data available "
         ctaLabel="Search Again"
         onCta={() => navigate('/')}
       />
