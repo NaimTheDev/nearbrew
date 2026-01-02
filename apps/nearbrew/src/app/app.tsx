@@ -60,9 +60,7 @@ export function App() {
               Search your favorite coffee shop to jump into its live insights or browse curated
               picks below.
             </p>
-            {ip && (
-              <p className="text-xs text-muted-foreground">Your IP: {ip}</p>
-            )}
+           
             {geoFetchError && (
               <p className="text-xs text-destructive">IP lookup error: {geoFetchError}</p>
             )}

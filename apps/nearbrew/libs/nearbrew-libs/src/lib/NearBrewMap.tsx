@@ -2,7 +2,7 @@ import { useMemo, useState, useEffect } from 'react';
 import { Popup, Marker, MapContainer, TileLayer } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
-import { FaCoffee } from 'react-icons/fa';
+import { FaCoffee,FaLocationArrow } from 'react-icons/fa';
 import { renderToString } from 'react-dom/server';
 
 type IconDefaultPrototype = typeof L.Icon.Default.prototype & {
@@ -75,6 +75,39 @@ export function NearBrewMap({ className = '', height = 400, latitude, longitude 
       }),
     []
   );
+    const myLocationIcon = useMemo(
+    () =>
+     L.divIcon({
+  className: 'nearbrew-marker',
+  iconSize: [48, 56],
+
+  iconAnchor: [48, 56],
+
+  popupAnchor: [-24, -56],
+
+  html: renderToString(
+    <span className="nearbrew-marker__pin">
+      <span className="nearbrew-marker__inner">
+        <FaLocationArrow 
+          className="nearbrew-marker__icon text-amber-800" 
+          size={20}
+          aria-hidden="true"
+          style={{ 
+            transform: 'rotate(0deg)', 
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: '50%',
+            height: '50%'
+          }}
+        />
+      </span>
+    </span>
+  ),
+})
+,
+    []
+  );
 
   return (
     <div
@@ -98,7 +131,10 @@ export function NearBrewMap({ className = '', height = 400, latitude, longitude 
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
         <Marker position={mapCenter} icon={coffeeMarkerIcon}>
-          <Popup>Map center</Popup>
+          <Popup>You are here</Popup>
+        </Marker>
+        <Marker position={mapCenter} icon={myLocationIcon}>
+          <Popup>You are here</Popup>
         </Marker>
       </MapContainer>
 

@@ -128,6 +128,8 @@ const getVenuesForLocation = async (
   bestTimeUrl.searchParams.append('foot_traffic', 'both');
   bestTimeUrl.searchParams.append('limit', '20');
   bestTimeUrl.searchParams.append('page', '0');
+    bestTimeUrl.searchParams.append('live', 'true');
+
 
   const filterResponse = await fetch(bestTimeUrl.toString());
 
