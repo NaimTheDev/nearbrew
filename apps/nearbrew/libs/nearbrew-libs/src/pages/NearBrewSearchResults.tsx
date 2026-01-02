@@ -4,6 +4,7 @@ import type {
   VenueLiveForecastAnalysis,
   VenueLiveForecastVenueInfo,
   VenueLiveResponse,
+  VenueLiveResponseFallback,
 } from '@nearbrew/shared-types';
 import {
   FiActivity,
@@ -212,6 +213,8 @@ interface NoResultsCardProps {
   statusLabel?: string;
   ctaLabel: string;
   onCta: () => void;
+  // When the backend returns the fallback payload, we surface key details here
+  fallbackResult?: VenueLiveResponseFallback;
 }
 
 function NoResultsCard({
@@ -224,7 +227,27 @@ function NoResultsCard({
   statusLabel,
   ctaLabel,
   onCta,
+  fallbackResult,
 }: NoResultsCardProps) {
+  const fallbackNow = fallbackResult?.analysis?.hour_raw;
+  const fallbackIntensity = fallbackResult?.analysis?.hour_analysis?.intensity_txt;
+  const fallbackLocalIso = fallbackResult?.venue_info?.venue_current_localtime_iso;
+  const fallbackUpdatedOn = fallbackResult?.forecast_updated_on;
+
+  const fallbackTimeLabel = useMemo(() => {
+    if (!fallbackLocalIso) return undefined;
+    try {
+      const d = new Date(fallbackLocalIso);
+      return d.toLocaleString(undefined, {
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: true,
+      });
+    } catch {
+      return undefined;
+    }
+  }, [fallbackLocalIso]);
+
   return (
     <section className="bg-white rounded-[32px] shadow-2xl p-8 text-center space-y-8">
       <div className="flex justify-center">
@@ -257,6 +280,43 @@ function NoResultsCard({
               )}
               {statusLabel && <span className="font-medium">{statusLabel}</span>}
             </div>
+          </div>
+        </div>
+      )}
+
+      {fallbackResult && (
+        <div className="grid gap-4 sm:grid-cols-3 max-w-3xl mx-auto text-left">
+          <div className="rounded-2xl border border-orange-100 bg-orange-50/80 p-5 space-y-1">
+            <div className="flex items-center gap-2 text-sm font-semibold text-orange-700">
+              <FiActivity /> Now (forecast)
+            </div>
+            <p className="text-2xl font-semibold text-orange-800">
+              {typeof fallbackNow === 'number' ? `${Math.round(fallbackNow)}% busy` : '--'}
+            </p>
+            <p className="text-sm text-orange-700/80">
+              {fallbackIntensity ? `Intensity: ${fallbackIntensity}` : 'No intensity available'}
+            </p>
+          </div>
+
+          <div className="rounded-2xl border border-stone-200 bg-stone-50 p-5 space-y-1">
+            <div className="flex items-center gap-2 text-sm font-semibold text-stone-700">
+              <FiClock /> Local time
+            </div>
+            <p className="text-xl font-semibold text-stone-900">
+              {fallbackTimeLabel ?? '—'}
+            </p>
+            <p className="text-xs text-stone-500">
+              {fallbackLocalIso}
+            </p>
+          </div>
+
+          <div className="rounded-2xl border border-emerald-100 bg-emerald-50 p-5 space-y-1">
+            <div className="flex items-center gap-2 text-sm font-semibold text-emerald-700">
+              <FiTrendingUp /> Updated
+            </div>
+            <p className="text-sm text-emerald-800 break-all">
+              {fallbackUpdatedOn ?? '—'}
+            </p>
           </div>
         </div>
       )}
@@ -374,6 +434,21 @@ export function NearBrewSearchResults() {
     searchResult?.status === 'OK' &&
     Boolean(searchResult.analysis) &&
     Boolean(searchResult.venue_info);
+
+  // Detect the fallback-shape response at runtime
+  const isFallback = useMemo(() => {
+    const anyResult = searchResult as unknown as Record<string, any> | undefined;
+    // Must be OK and include analysis.hour_analysis/hour_raw and minimal venue_info
+    return Boolean(
+      anyResult &&
+        anyResult.status === 'OK' &&
+        anyResult.analysis &&
+        anyResult.analysis.hour_analysis &&
+        typeof anyResult.analysis.hour_raw === 'number' &&
+        anyResult.venue_info &&
+        typeof anyResult.venue_info.venue_name === 'string'
+    );
+  }, [searchResult]);
 
   let content: React.ReactElement;
 

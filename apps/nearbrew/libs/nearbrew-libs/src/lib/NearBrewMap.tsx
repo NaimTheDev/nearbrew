@@ -1,5 +1,5 @@
 import { useMemo, useState, useEffect } from 'react';
-import { Popup, Marker, MapContainer, TileLayer, useMapEvents } from 'react-leaflet';
+import { Popup, Marker, MapContainer, TileLayer } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import { FaCoffee } from 'react-icons/fa';
@@ -20,64 +20,28 @@ L.Icon.Default.mergeOptions({
 interface NearBrewMapProps {
   className?: string;
   height?: number;
+  longitude?: number;
+  latitude?: number;
 }
 
-interface LocationMarkerProps {
-  icon: L.DivIcon;
-}
+// Removed LocationMarker and geolocation hooks to avoid browser geolocation prompts
 
-function LocationMarker({ icon }: LocationMarkerProps) {
-  const [position, setPosition] = useState<L.LatLng | null>(null);
-
-  const map = useMapEvents({
-    click() {
-      map.locate();
-    },
-    locationfound(e) {
-      setPosition(e.latlng);
-      map.flyTo(e.latlng, Math.max(map.getZoom(), 15), {
-        animate: true,
-        duration: 1.2,
-      });
-    },
-  });
-
-  if (!position) {
-    return null;
-  }
-
-  return (
-    <Marker position={position} icon={icon}>
-      <Popup>You are here</Popup>
-    </Marker>
-  );
-}
-
-export function NearBrewMap({ className = '', height = 400 }: NearBrewMapProps) {
+export function NearBrewMap({ className = '', height = 400, latitude, longitude }: NearBrewMapProps) {
   const [userPosition, setUserPosition] = useState<[number, number] | null>(null);
   
   const fallbackPosition: [number, number] = [51.505, -0.09];
   
   useEffect(() => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          setUserPosition([position.coords.latitude, position.coords.longitude]);
-        },
-        (error) => {
-          console.warn('Geolocation error:', error.message);
-          setUserPosition(fallbackPosition);
-        },
-        {
-          enableHighAccuracy: true,
-          timeout: 10000,
-          maximumAge: 300000 // Cache location for 5 minutes
-        }
-      );
+    // Use provided latitude/longitude if available; fallback otherwise
+    if (
+      typeof latitude === 'number' && Number.isFinite(latitude) &&
+      typeof longitude === 'number' && Number.isFinite(longitude)
+    ) {
+      setUserPosition([latitude, longitude]);
     } else {
       setUserPosition(fallbackPosition);
     }
-  }, []);
+  }, [latitude, longitude]);
 
 
   const mapCenter = userPosition || fallbackPosition;
@@ -134,22 +98,14 @@ export function NearBrewMap({ className = '', height = 400 }: NearBrewMapProps) 
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
         <Marker position={mapCenter} icon={coffeeMarkerIcon}>
-          <Popup>You are here!</Popup>
+          <Popup>Map center</Popup>
         </Marker>
-        <LocationMarker icon={coffeeMarkerIcon} />
       </MapContainer>
 
       <div className="pointer-events-none absolute inset-0 z-10" aria-hidden="true" />
       <div className="pointer-events-none absolute inset-4 z-20" aria-hidden="true" />
       <div className="absolute bottom-5 left-1/2 z-30 -translate-x-1/2">
-        <div className="nearbrew-map__location-pill">
-          <span>Your location</span>
-          <FaCoffee 
-            className="text-amber-800" 
-            size={16}
-            aria-label="coffee shop"
-          />
-        </div>
+      
       </div>
     </div>
   );

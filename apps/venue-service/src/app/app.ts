@@ -9,7 +9,8 @@ import {
   VenueFilterResponse,
   VenueLiveRequest,
   VenueLiveResponse,
-  HealthResponse
+  HealthResponse,
+  VenueLiveResponseFallback
 } from '@nearbrew/shared-types';
 
 /* eslint-disable-next-line */
@@ -18,18 +19,18 @@ export interface AppOptions {}
 // Initialize cache with 10 minute TTL
 const cache = new NodeCache({ stdTTL: 600 });
 
-type BestTimeSearchResponse = {
-  status: string;
-  job_id: string;
-};
+// type BestTimeSearchResponse = {
+//   status: string;
+//   job_id: string;
+// };
 
-type BestTimeProgressResponse = {
-  job_finished: boolean;
- status: string;
-  _links?: {
-    venue_filter_api: string; // url to fetch filtered venues
-    radar_tool: string;
-  }};
+// type BestTimeProgressResponse = {
+//   job_finished: boolean;
+//  status: string;
+//   _links?: {
+//     venue_filter_api: string; // url to fetch filtered venues
+//     radar_tool: string;
+//   }};
 
 // Helper function to calculate distance between two coordinates
 const isNearby = (lat1: number, lon1: number, lat2: number, lon2: number, radiusM: number): boolean => {
@@ -43,7 +44,7 @@ const isNearby = (lat1: number, lon1: number, lat2: number, lon2: number, radius
   return distance <= radiusM;
 };
 
-const delay = (ms: number): Promise<void> => new Promise((resolve) => setTimeout(resolve, ms));
+// const delay = (ms: number): Promise<void> => new Promise((resolve) => setTimeout(resolve, ms));
 
 const createDefaultWindow = (): VenueFilterResponse['window'] => ({
   time_window_start: 0,
@@ -62,46 +63,46 @@ const createDefaultWindow = (): VenueFilterResponse['window'] => ({
   time_local_index: 0,
 });
 
-const pollForResults = async (jobId: string): Promise<Venue[]> => {
-  const progressUrl = new URL('https://besttime.app/api/v1/venues/progress');
-  progressUrl.searchParams.append('job_id', jobId);
+// const pollForResults = async (jobId: string): Promise<Venue[]> => {
+//   const progressUrl = new URL('https://besttime.app/api/v1/venues/progress');
+//   progressUrl.searchParams.append('job_id', jobId);
 
-  const maxRetries = 20;
-  const delayMs = 2000;
+//   const maxRetries = 20;
+//   const delayMs = 2000;
 
-  for (let attempt = 0; attempt < maxRetries; attempt++) {
-    const response = await fetch(progressUrl.toString());
+//   for (let attempt = 0; attempt < maxRetries; attempt++) {
+//     const response = await fetch(progressUrl.toString());
 
-    if (!response.ok) {
-      throw new Error(`Progress polling failed with status ${response.status}`);
-    }
+//     if (!response.ok) {
+//       throw new Error(`Progress polling failed with status ${response.status}`);
+//     }
 
-    const data = (await response.json()) as BestTimeProgressResponse;
+//     const data = (await response.json()) as BestTimeProgressResponse;
 
-    if (data.job_finished) {
-      if (data._links?.venue_filter_api) {
-    let venueFilterApiUrl = data._links.venue_filter_api;
+//     if (data.job_finished) {
+//       if (data._links?.venue_filter_api) {
+//     let venueFilterApiUrl = data._links.venue_filter_api;
 
     
-    venueFilterApiUrl += `&api_key_private=${process.env.BEST_TIME_APP_API_KEY}`;
+//     venueFilterApiUrl += `&api_key_private=${process.env.BEST_TIME_APP_API_KEY}`;
 
-        const venueResponse = await fetch(venueFilterApiUrl);
-        if (!venueResponse.ok) {
-          throw new Error(`Venue filter fetch failed with status ${venueResponse.status}`);
-        }
-        const venueData = (await venueResponse.json()) as VenueFilterResponse;
-        return venueData.venues;
-      } else {
-        throw new Error('Venue filter API link not found in progress response');
-      }
+//         const venueResponse = await fetch(venueFilterApiUrl);
+//         if (!venueResponse.ok) {
+//           throw new Error(`Venue filter fetch failed with status ${venueResponse.status}`);
+//         }
+//         const venueData = (await venueResponse.json()) as VenueFilterResponse;
+//         return venueData.venues;
+//       } else {
+//         throw new Error('Venue filter API link not found in progress response');
+//       }
     
-    }
+//     }
 
-    await delay(delayMs);
-  }
+//     await delay(delayMs);
+//   }
 
-  throw new Error('Search timed out');
-};
+//   throw new Error('Search timed out');
+// };
 
 const getVenuesForLocation = async (
   lat: number,
@@ -115,10 +116,10 @@ const getVenuesForLocation = async (
 
   const bestTimeUrl = new URL('https://besttime.app/api/v1/venues/filter');
   bestTimeUrl.searchParams.append('api_key_private', apiKey);
-  bestTimeUrl.searchParams.append('busy_min', '50');
+  bestTimeUrl.searchParams.append('busy_min', '0');
   bestTimeUrl.searchParams.append('busy_max', '100');
-  bestTimeUrl.searchParams.append('live', 'true');
-  bestTimeUrl.searchParams.append('types', 'CAFE,COFFEE,BAKERY');
+  bestTimeUrl.searchParams.append('now', 'true');
+  bestTimeUrl.searchParams.append('types', 'COFFEE,TEA');
   bestTimeUrl.searchParams.append('lat', lat.toString());
   bestTimeUrl.searchParams.append('lng', lng.toString());
   bestTimeUrl.searchParams.append('radius', radius.toString());
@@ -148,34 +149,34 @@ const getVenuesForLocation = async (
     throw new Error(`BestTime API returned ${filterResponse.status}: ${filterResponse.statusText}`);
   }
 
-  const params = new URLSearchParams({
-    api_key_private: apiKey,
-    q: 'cafes and coffee shops',
-    lat: lat.toString(),
-    lng: lng.toString(),
-    radius: radius.toString(),
-    fast: 'true',
-    format: 'raw',
-  });
+  // const params = new URLSearchParams({
+  //   api_key_private: apiKey,
+  //   q: 'cafes and coffee shops',
+  //   lat: lat.toString(),
+  //   lng: lng.toString(),
+  //   radius: radius.toString(),
+  //   fast: 'true',
+  //   format: 'raw',
+  // });
 
-  const searchResponse = await fetch(`https://besttime.app/api/v1/venues/search?${params}`, {
-    method: 'POST',
-  });
+  // const searchResponse = await fetch(`https://besttime.app/api/v1/venues/search?${params}`, {
+  //   method: 'POST',
+  // });
 
-  if (!searchResponse.ok) {
-    throw new Error(`BestTime search failed with status ${searchResponse.status}`);
-  }
+  // if (!searchResponse.ok) {
+  //   throw new Error(`BestTime search failed with status ${searchResponse.status}`);
+  // }
 
-  const searchData = (await searchResponse.json()) as BestTimeSearchResponse;
+  // const searchData = (await searchResponse.json()) as BestTimeSearchResponse;
 
-  if (!searchData.job_id) {
-    throw new Error('BestTime search did not return a job_id');
-  }
+  // if (!searchData.job_id) {
+  //   throw new Error('BestTime search did not return a job_id');
+  // }
 
-  const venues = await pollForResults(searchData.job_id);
+  // const venues = await pollForResults(searchData.job_id);
 
   return {
-    venues,
+     venues: [],
     status: 'ok',
   };
 };
@@ -267,7 +268,7 @@ export async function app(fastify: FastifyInstance, opts: AppOptions) {
 
   fastify.post<{
     Querystring: VenueLiveRequest;
-    Reply: VenueLiveResponse;
+    Reply: VenueLiveResponse | VenueLiveResponseFallback;
   }>('/venues/live-forecast', async (request, reply) => {
     const { venue_name, venue_address } = request.query;
 
@@ -298,8 +299,11 @@ export async function app(fastify: FastifyInstance, opts: AppOptions) {
 
       const payload = (await response.json()) as VenueLiveResponse;
 
+      
+
       if (!response.ok) {
         reply.status(response.status);
+        // return the fallback instead
         return payload;
       }
 

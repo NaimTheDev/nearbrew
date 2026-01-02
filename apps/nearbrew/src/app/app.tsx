@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   NearBrewCard,
   StickyBanner,
@@ -6,41 +6,42 @@ import {
   VenueItemListComponent,
   NearBrewAutoComplete,
   BuyMeACoffeeButton,
-  NearBrewButton,
 } from '../../libs/nearbrew-libs/src';
 
 export function App() {
-  const [isRequestingLocation, setIsRequestingLocation] = useState(false);
-  const [locationError, setLocationError] = useState<string | null>(null);
   const [searchCoords, setSearchCoords] = useState<{ lat: string; lng: string; radius?: string } | null>(null);
+  // Geolocation-DB IP detection (no browser permission prompt)
+  const [ip, setIp] = useState<string | null>(null);
+  const [geoFetchError, setGeoFetchError] = useState<string | null>(null);
 
-  const requestUserLocation = () => {
-    if (!navigator.geolocation) {
-      setLocationError('Geolocation is not supported by this browser');
-      return;
-    }
-
-    setIsRequestingLocation(true);
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        setLocationError(null);
-        setIsRequestingLocation(false);
-        // You can add logic here to update the map or do something with the coordinates
-        console.log('Location:', position.coords.latitude, position.coords.longitude);
-        // Reset any manual search override to return to local venues
-        setSearchCoords(null);
-      },
-      (error) => {
-        setLocationError(error.message || 'Unable to retrieve location');
-        setIsRequestingLocation(false);
-      },
-      {
-        enableHighAccuracy: true,
-        timeout: 10000,
-        maximumAge: 300000,
+  useEffect(() => {
+    let cancelled = false;
+    const fetchIp = async () => {
+      try {
+        const response = await fetch('https://geolocation-db.com/json/');
+        const data = await response.json();
+        if (!cancelled) {
+          setIp(data?.IPv4 ?? null);
+          // Also seed venue search coordinates from geolocation-db
+          const lat = data?.latitude;
+          const lng = data?.longitude; // API uses `longitude`; our state uses `lng`
+          if (typeof lat === 'number' && typeof lng === 'number') {
+            setSearchCoords({
+              lat: lat.toString(),
+              lng: lng.toString(),
+              radius: '30000',
+            });
+          }
+        }
+      } catch (e: any) {
+        if (!cancelled) setGeoFetchError(e?.message ?? 'Failed to fetch IP');
       }
-    );
-  };
+    };
+    fetchIp();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
   return (
     <div className="min-h-screen bg-background text-foreground">
       <StickyBanner />
@@ -59,30 +60,25 @@ export function App() {
               Search your favorite coffee shop to jump into its live insights or browse curated
               picks below.
             </p>
+            {ip && (
+              <p className="text-xs text-muted-foreground">Your IP: {ip}</p>
+            )}
+            {geoFetchError && (
+              <p className="text-xs text-destructive">IP lookup error: {geoFetchError}</p>
+            )}
           </div>
           <NearBrewAutoComplete
             onGeocodeSearch={(coords: { lat: number; lng: number; radius?: string }) =>
               setSearchCoords({ lat: coords.lat.toString(), lng: coords.lng.toString(), radius: coords.radius ?? '30000' })
             }
           />
-          <NearBrewMap height={350} />
+          <NearBrewMap
+            height={350}
+            latitude={searchCoords ? Number(searchCoords.lat) : undefined}
+            longitude={searchCoords ? Number(searchCoords.lng) : undefined}
+          />
           
-          {/* Location button below the map */}
-          <div className="flex flex-col items-center gap-2">
-            <NearBrewButton
-              size="md"
-              variant="secondary"
-              onClick={requestUserLocation}
-              disabled={isRequestingLocation}
-            >
-              {isRequestingLocation ? 'Updating location...' : '📍 Use my location'}
-            </NearBrewButton>
-            {locationError && (
-              <div className="rounded-lg bg-red-50 px-4 py-2 text-sm text-red-700 shadow-sm max-w-md text-center">
-                {locationError}
-              </div>
-            )}
-          </div>
+          
 
           <VenueItemListComponent coords={searchCoords ?? undefined} />
         </NearBrewCard>

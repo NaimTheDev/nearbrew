@@ -44,13 +44,16 @@ function getBusyLevelInfo(busyValue: number) {
 }
 
 export function VenueItemComponent({ venue }: { venue: Venue }) {
+  console.log("venue.venue_live_busyness", venue.venue_live_busyness);
+  let busyValue = venue.venue_live_busyness_available ? venue.venue_live_busyness! : venue.day_raw[0]!;
+  console.log("value of busyValue:", busyValue);
   const navigate = useNavigate();
-  const busyInfo = getBusyLevelInfo(venue.day_raw[0]);
+  const busyInfo = getBusyLevelInfo(busyValue);
   const meetupPlan = useMeetupPlanner(venue);
   const { shareInvite, status: shareStatus } = useShareInvite();
 
   const handleClick = () => {
-    navigate('/details', { state: { venue } });
+    navigate('/details', { state: { venue, busynessNum: busyValue } });
   };
 
   const handlePlanMeetup = async (
@@ -128,6 +131,7 @@ export function VenueItemComponent({ venue }: { venue: Venue }) {
                 {venue.venue_address}
               </p>
             </div>
+            
             
             <div style={{ display: 'flex', alignItems: 'center', flexShrink: 0 }}>
               <div 
