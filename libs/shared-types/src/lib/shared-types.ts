@@ -52,6 +52,10 @@ export interface Venue {
   venue_type: VenueType;
   venue_dwell_time_min: number;
   venue_dwell_time_max: number;
+  venue_live_busyness?: number;           // The real-time percentage
+  venue_live_busyness_available?: boolean; // Whether live data exists right now
+  venue_forecasted_busyness?: number;      // The "usual" busyness for this hour
+  venue_live_forecasted_delta?: number;    
 }
 
 // API Response Types
@@ -132,6 +136,28 @@ export interface VenueLiveResponse {
   message?: string;
   analysis?: VenueLiveForecastAnalysis;
   venue_info?: VenueLiveForecastVenueInfo;
+}
+
+export interface VenueLiveResponseFallback {
+    status: "OK" | "Error";
+    analysis: {
+        hour_analysis: {
+            hour: number; // 0-23
+         
+            intensity_nr: -2 | -1 | 0 | 1 | 2 | 999; 
+            intensity_txt: "Low" | "Below average" | "Average" | "Above average" | "High" | "Closed";
+        };
+        /** The forecasted busyness percentage (0-100) */
+        hour_raw: number; 
+    };
+    epoch_analysis: number;
+    forecast_updated_on: string;
+    venue_info: {
+        venue_id: string;
+        venue_name: string;
+        venue_current_localtime_iso: string;
+        venue_current_gmttime: string;
+    };
 }
 
 export function sharedTypes(): string {

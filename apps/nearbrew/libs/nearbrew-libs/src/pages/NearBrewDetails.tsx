@@ -48,14 +48,17 @@ ChartJS.register(
 
 export interface NearBrewDetailsProps {
   venue: Venue;
+  busynessNum?: number;
 }
 
 const COFFEE_COLOR = '#c47a3d';
 const COFFEE_COLOR_FILL = 'rgba(196, 122, 61, 0.15)';
 
-export function NearBrewDetails({ venue }: NearBrewDetailsProps) {
+export function NearBrewDetails({ venue, busynessNum }: NearBrewDetailsProps) {
   const navigate = useNavigate();
-  const busyness = useVenueBusyness(venue.day_raw[0]);
+  console.log("value of bysnessNum:", busynessNum);
+
+  const busyness = useVenueBusyness(busynessNum ?? venue.day_raw[0]);
   const { peakWindows, quietWindows } = useDailyFlowInsights(
     venue.day_raw_whole
   );
@@ -80,17 +83,27 @@ export function NearBrewDetails({ venue }: NearBrewDetailsProps) {
     : '--';
 
   const crowdTrendData = useMemo<ChartData<'line'>>(() => {
-    const values =
+    const rawValues =
       venue.day_raw_whole && venue.day_raw_whole.length > 0
         ? venue.day_raw_whole
         : Array.from({ length: 24 }, () => 0);
 
+    // keep hour indexes so we can produce correct labels after filtering zeros
+    const indexed = rawValues.map((v, i) => ({ value: v, hour: i }));
+    const filtered = indexed.filter((item) => item.value !== 0);
+
+    // If filtering removes all points, fall back to the original series to avoid an empty chart
+    const finalSeries = filtered.length > 0 ? filtered : indexed;
+
+    const labels = finalSeries.map((p) => to12HourLabel(p.hour));
+    const data = finalSeries.map((p) => p.value);
+
     return {
-      labels: values.map((_, hour) => to12HourLabel(hour)),
+      labels,
       datasets: [
         {
           label: 'Crowd Level',
-          data: values,
+          data,
           borderColor: COFFEE_COLOR,
           backgroundColor: COFFEE_COLOR_FILL,
           pointRadius: 0,
@@ -297,7 +310,7 @@ export function NearBrewDetails({ venue }: NearBrewDetailsProps) {
                 </p>
                 <p className="text-foreground text-lg mt-2">{todaysHours}</p>
                 <p className="text-sm text-muted-foreground mt-1">
-                  Dwell time {dwellTimeLabel}
+                  People usually spend around {dwellTimeLabel} here
                 </p>
               </div>
               <div className="rounded-2xl border border-amber-100 bg-amber-50 p-4">

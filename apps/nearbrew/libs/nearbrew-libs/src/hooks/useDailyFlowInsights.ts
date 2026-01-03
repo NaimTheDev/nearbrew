@@ -66,7 +66,9 @@ export function useDailyFlowInsights(
       };
     }
 
-    const sample = dayRawWhole.slice(0, HOURS_IN_DAY);
+    const sample = dayRawWhole
+      .slice(0, HOURS_IN_DAY)
+      .filter((v) => v !== 0);
     const scores = buildWindowScores(sample);
 
     return {
