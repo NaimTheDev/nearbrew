@@ -2,6 +2,8 @@ import * as path from 'path';
 import { FastifyInstance } from 'fastify';
 import AutoLoad from '@fastify/autoload';
 import fastifyCors from '@fastify/cors';
+import rateLimit from '@fastify/rate-limit';
+
 import NodeCache from 'node-cache';
 import {
   Venue,
@@ -43,6 +45,12 @@ const isNearby = (lat1: number, lon1: number, lat2: number, lon2: number, radius
   const distance = 2 * R * Math.asin(Math.sqrt(a));
   return distance <= radiusM;
 };
+function getClientIp(req: import('fastify').FastifyRequest): string {
+  const xRealIp = (req.headers['x-real-ip'] as string) || '';
+  const xff = req.headers['x-forwarded-for'] as string | undefined;
+  const forwardedIp = xff ? xff.split(',')[0].trim() : '';
+  return (xRealIp || forwardedIp || req.ip || 'unknown');
+}
 
 // const delay = (ms: number): Promise<void> => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -128,7 +136,7 @@ const getVenuesForLocation = async (
   bestTimeUrl.searchParams.append('foot_traffic', 'both');
   bestTimeUrl.searchParams.append('limit', '20');
   bestTimeUrl.searchParams.append('page', '0');
-    bestTimeUrl.searchParams.append('live', 'true');
+    // bestTimeUrl.searchParams.append('live', 'true');
 
 
   const filterResponse = await fetch(bestTimeUrl.toString());
@@ -190,10 +198,65 @@ export async function app(fastify: FastifyInstance, opts: AppOptions) {
     origin: process.env.CORS_ORIGIN?.split(',') || ['http://localhost:3000', 'http://localhost:3001']
   });
 
+  // rate limiter
+ await fastify.register(rateLimit, {
+    global: false,
+    addHeaders: {
+      'x-ratelimit-limit': true,
+      'x-ratelimit-remaining': true,
+      'x-ratelimit-reset': true,
+    },
+    // skipOnError: true,
+    // For multi-instance: provide redis here
+    // redis: new IORedis(process.env.REDIS_URL!),
+  });
+
    fastify.get<{ Reply: HealthResponse }>('/health', async (request, reply) => {
     return { status: 'ok' };
   });
+  // get ip of user
 
+  fastify.get('/geo/ip', async (request, reply) => {
+  const clientIp = getClientIp(request);
+  const cacheKey = `ipgeo:${clientIp}`;
+
+  const cached = cache.get(cacheKey);
+  if (cached) {
+    console.log('Cache hit for IP geolocation:', clientIp);
+    reply
+      .header('Cache-Control', 'public, max-age=86400, stale-while-revalidate=604800')
+      .header('Vary', 'X-Real-IP, X-Forwarded-For');
+    return cached;
+  }
+console.log('Cache miss for IP geolocation:', clientIp);
+
+const url = new URL('https://api.ipapi.com/api/check');
+const accessKey = process.env.IPAPI_ACCESS_KEY;
+if (!accessKey) {
+  reply.code(500);
+  return { status: 'error', message: 'IPAPI_ACCESS_KEY not set' };
+}
+url.searchParams.set('access_key', accessKey);
+
+
+const res = await fetch(url.toString(), {
+  headers: { Accept: 'application/json' },
+});  if (!res.ok) {
+    reply.code(res.status);
+    return { status: 'error', message: `ipapi error ${res.status}` };
+  }
+
+  const data = await res.json();
+
+  // Per-entry TTL override: 24h
+  cache.set(cacheKey, data, 86400*7);
+
+  reply
+    .header('Cache-Control', 'public, max-age=86400, stale-while-revalidate=604800')
+    .header('Vary', 'X-Real-IP, X-Forwarded-For');
+
+  return data;
+});
 
   fastify.get<{
     Querystring: VenueFilterRequest;
@@ -271,7 +334,37 @@ export async function app(fastify: FastifyInstance, opts: AppOptions) {
   fastify.post<{
     Querystring: VenueLiveRequest;
     Reply: VenueLiveResponse | VenueLiveResponseFallback;
-  }>('/venues/live-forecast', async (request, reply) => {
+  }>('/venues/live-forecast', {
+    preHandler: (req, _reply, done) => {
+      const ip = getClientIp(req);
+      fastify.log.info({ ip, method: req.method, url: req.url }, 'live-forecast preHandler IP');
+      done();
+    },
+    config: {
+      rateLimit: {
+        max: 5,                   // at most 5 requests
+        timeWindow: 60 * 60 * 1000,   // 1 hour window
+        hook: 'preHandler',       // block early
+        keyGenerator: (req) => {
+          const ip = getClientIp(req);
+          fastify.log.info({ ip, method: req.method, url: req.url }, 'rate-limit keyGenerator IP');
+          return ip;
+        },
+        // Optional: customize the 429 body
+        errorResponseBuilder: (req, context) => {
+          // context.ttl is ms until reset
+          const retrySec = Math.ceil(context.ttl / 1000);
+          return {
+            statusCode: 429,
+            error: 'Too Many Requests',
+            message: `Rate limit exceeded. Try again in ${retrySec}s.`,
+          };
+        },
+        // Optional: don’t count preflight or health checks globally
+        // skip: (req) => req.method === 'OPTIONS',
+      },
+    },
+  }, async (request, reply) => {
     const { venue_name, venue_address } = request.query;
 
     if (!venue_name?.trim() || !venue_address?.trim()) {

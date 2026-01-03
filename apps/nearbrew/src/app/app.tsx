@@ -8,38 +8,100 @@ import {
   BuyMeACoffeeButton,
 } from '../../libs/nearbrew-libs/src';
 
+// ipApi stuff START
+const ONE_DAY_MS = 24 * 60 * 60 * 1000;
+type IpApiResponse = {
+  ip: string;
+  city: string;
+  region: string;
+  country_code: string;
+  latitude: number;
+  longitude: number;
+};
+
+type CachedEntry = { ts: number; data: IpApiResponse };
+
+
+export function throttleAsync<T>(fn: () => Promise<T>, waitMs: number) {
+  let locked = false;
+  let pending: Promise<T> | null = null;
+
+  return () => {
+    if (locked) {
+      // Return the same promise during the throttle window
+      return pending as Promise<T>;
+    }
+    locked = true;
+    pending = fn().finally(() => {
+      setTimeout(() => {
+        locked = false;
+        pending = null;
+      }, waitMs);
+    });
+    return pending!;
+  };
+}
+
+async function getIpGeoBoot(): Promise<IpApiResponse | null> {
+  try {
+    const raw = localStorage.getItem('ipgeo:last');
+    if (raw) {
+      const cached: CachedEntry = JSON.parse(raw);
+      if (Date.now() - cached.ts < ONE_DAY_MS) return cached.data;
+    }
+  } catch {/* ignore parse errors */}
+
+  try {
+const res = await fetch('/api/geo/ip', { cache: 'no-store' });
+    if (!res.ok) return null;
+    const data = (await res.json()) as IpApiResponse;
+    localStorage.setItem('ipgeo:last', JSON.stringify({ ts: Date.now(), data }));
+    console.log('Fetched IP geolocation data:', data);
+    return data;
+  } catch {
+    return null;
+  }
+}
+
+// ipApi stuff END
+const getIpGeoThrottled = throttleAsync(getIpGeoBoot, 2000);
+
 export function App() {
   const [searchCoords, setSearchCoords] = useState<{ lat: string; lng: string; radius?: string } | null>(null);
   // Geolocation-DB IP detection (no browser permission prompt)
-  const [ip, setIp] = useState<string | null>(null);
+  const [ip, setIp] = useState<IpApiResponse | null>(null);
   const [geoFetchError, setGeoFetchError] = useState<string | null>(null);
 
   useEffect(() => {
-    let cancelled = false;
+    let mounted = true;
     const fetchIp = async () => {
       try {
-        const response = await fetch('https://geolocation-db.com/json/');
-        const data = await response.json();
-        if (!cancelled) {
-          setIp(data?.IPv4 ?? null);
+        const data = await getIpGeoThrottled();
+      
+        if (mounted) {
+          setIp(data);
           // Also seed venue search coordinates from geolocation-db
+          console.log('Detected IP geolocation:', data);
           const lat = data?.latitude;
           const lng = data?.longitude; // API uses `longitude`; our state uses `lng`
           if (typeof lat === 'number' && typeof lng === 'number') {
+            const round2 = (n: number) => Math.round(n * 100) / 100;
+            const roundedLat = round2(lat);
+            const roundedLng = round2(lng);
             setSearchCoords({
-              lat: lat.toString(),
-              lng: lng.toString(),
-              radius: '30000',
+              lat: roundedLat.toString(),
+              lng: roundedLng.toString(),
+              radius: '9000',
             });
           }
         }
       } catch (e: any) {
-        if (!cancelled) setGeoFetchError(e?.message ?? 'Failed to fetch IP');
+        if (!mounted) setGeoFetchError(e?.message ?? 'Failed to fetch IP');
       }
     };
     fetchIp();
     return () => {
-      cancelled = true;
+      mounted = false;
     };
   }, []);
   return (
@@ -67,7 +129,7 @@ export function App() {
           </div>
           <NearBrewAutoComplete
             onGeocodeSearch={(coords: { lat: number; lng: number; radius?: string }) =>
-              setSearchCoords({ lat: coords.lat.toString(), lng: coords.lng.toString(), radius: coords.radius ?? '30000' })
+              setSearchCoords({ lat: coords.lat.toString(), lng: coords.lng.toString(), radius: coords.radius ?? '9000' })
             }
           />
           <NearBrewMap

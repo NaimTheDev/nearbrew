@@ -44,9 +44,7 @@ function getBusyLevelInfo(busyValue: number) {
 }
 
 export function VenueItemComponent({ venue }: { venue: Venue }) {
-  console.log("venue.venue_live_busyness", venue.venue_live_busyness);
   let busyValue = venue.venue_live_busyness_available ? venue.venue_live_busyness! : venue.day_raw[0]!;
-  console.log("value of busyValue:", busyValue);
   const navigate = useNavigate();
   const busyInfo = getBusyLevelInfo(busyValue);
   const meetupPlan = useMeetupPlanner(venue);

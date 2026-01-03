@@ -12,6 +12,8 @@ export const searchService = {
       searchParams.append('venue_address', params.venue_address);
     }
 
+    console.log('calling /venues/live-forecast')
+
     const response = await fetch(`${config.apiBaseUrl}/venues/live-forecast?${searchParams}`, {
       method: 'POST',
     });

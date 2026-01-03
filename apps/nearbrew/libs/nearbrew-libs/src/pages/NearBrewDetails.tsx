@@ -56,7 +56,6 @@ const COFFEE_COLOR_FILL = 'rgba(196, 122, 61, 0.15)';
 
 export function NearBrewDetails({ venue, busynessNum }: NearBrewDetailsProps) {
   const navigate = useNavigate();
-  console.log("value of bysnessNum:", busynessNum);
 
   const busyness = useVenueBusyness(busynessNum ?? venue.day_raw[0]);
   const { peakWindows, quietWindows } = useDailyFlowInsights(

@@ -45,7 +45,6 @@ export interface MeetupPlannerResult {
 export function useMeetupPlanner(venue: Venue): MeetupPlannerResult {
   const { quietWindows } = useDailyFlowInsights(venue.day_raw_whole);
   const nextBusyTime = useNextBusyTime(venue.day_raw_whole);
-  console.log(venue.day_raw_whole);
 
   return useMemo(() => {
     const quietWindowRaw = quietWindows[0] ?? null;
