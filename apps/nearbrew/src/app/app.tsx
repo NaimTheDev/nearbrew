@@ -74,11 +74,16 @@ export function App() {
             height={350}
             latitude={searchCoords ? Number(searchCoords.lat) : undefined}
             longitude={searchCoords ? Number(searchCoords.lng) : undefined}
+            onLocate={({ lat, lng }) =>
+              setSearchCoords({ lat: lat.toString(), lng: lng.toString(), radius: '9000' })
+            }
           />
           
           
 
-          <VenueItemListComponent coords={searchCoords ?? undefined} />
+          {searchCoords && (
+            <VenueItemListComponent coords={searchCoords} />
+          )}
         </NearBrewCard>
       </div>
 
