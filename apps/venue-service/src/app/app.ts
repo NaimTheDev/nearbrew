@@ -16,8 +16,8 @@ import {
 /* eslint-disable-next-line */
 export interface AppOptions {}
 
-// Initialize cache with 10 minute TTL
-const cache = new NodeCache({ stdTTL: 600 });
+// Initialize cache with 1 hour TTL
+const cache = new NodeCache({ stdTTL: 4000, checkperiod: 120 });
 
 // type BestTimeSearchResponse = {
 //   status: string;
