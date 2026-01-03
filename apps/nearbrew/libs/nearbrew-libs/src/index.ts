@@ -1,4 +1,5 @@
 export * from './lib/NearBrewAutoComplete';
+export * from './lib/RateLimitModal';
 export * from './pages/NearBrewSearchResults';
 export * from './pages/NearBrewDetails';
 export * from './pages/NearBrewDetailsPage';

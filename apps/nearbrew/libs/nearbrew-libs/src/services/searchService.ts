@@ -1,6 +1,13 @@
 import { VenueLiveRequest, VenueLiveResponse } from '@nearbrew/shared-types';
 import { config } from '../config';
 
+export class RateLimitError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = 'RateLimitError';
+  }
+}
+
 export const searchService = {
   async fetchLiveForecast(params: VenueLiveRequest): Promise<VenueLiveResponse> {
     // Build query parameters
@@ -19,6 +26,12 @@ export const searchService = {
     });
 
     const data = (await response.json()) as VenueLiveResponse;
+
+    if (response.status === 429) {
+      throw new RateLimitError(
+        data?.message ?? 'Too many live searches right now. Please try again in about an hour.'
+      );
+    }
 
     if (!response.ok) {
       throw new Error(

@@ -2,8 +2,9 @@ import { useCallback, useState, type KeyboardEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import GooglePlacesAutocomplete, {getLatLng, geocodeByAddress, geocodeByPlaceId} from 'react-google-places-autocomplete';
 import { FiAlertCircle, FiSearch } from 'react-icons/fi';
-import { searchService } from '../services/searchService';
+import { RateLimitError, searchService } from '../services/searchService';
 import { NearBrewButton } from './NearBrewButton';
+import { RateLimitModal } from './RateLimitModal';
 import { config } from '../config';
 
 type PlaceOption = {
@@ -38,6 +39,7 @@ export function NearBrewAutoComplete({
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isRateLimitModalOpen, setIsRateLimitModalOpen] = useState(false);
   const googleMapsApiKey = config.googleMapsApiKey;
   const isPlacesEnabled = Boolean(googleMapsApiKey);
 
@@ -118,11 +120,16 @@ export function NearBrewAutoComplete({
         },
       });
     } catch (fetchError) {
-      setError(
-        fetchError instanceof Error
-          ? fetchError.message
-          : 'Unable to search right now.'
-      );
+      if (fetchError instanceof RateLimitError) {
+        setError(null);
+        setIsRateLimitModalOpen(true);
+      } else {
+        setError(
+          fetchError instanceof Error
+            ? fetchError.message
+            : 'Unable to search right now.'
+        );
+      }
     } finally {
       setIsLoading(false);
     }
@@ -217,6 +224,12 @@ export function NearBrewAutoComplete({
       <p className="text-xs text-muted-foreground">
         Hit enter or tap Search to jump straight to the live busyness report.
       </p>
+
+      <RateLimitModal
+        open={isRateLimitModalOpen}
+        onClose={() => setIsRateLimitModalOpen(false)}
+        message="You've reached the live forecast limit for now. Please give it about an hour and try again."
+      />
     </div>
   );
 }
