@@ -7,18 +7,29 @@ import {
   NearBrewAutoComplete,
   BuyMeACoffeeButton,
 } from '../../libs/nearbrew-libs/src';
-import { config as nearbrewConfig } from '../../libs/nearbrew-libs/src/config';
 
 // ipApi stuff START
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
-type IpApiResponse = {
+interface IpApiResponse {
   ip: string;
   city: string;
   region: string;
-  country_code: string;
+  region_code: string;
+  country: string;
+  country_name: string;
+  continent_code: string;
+  in_eu: boolean;
+  postal: string;
   latitude: number;
   longitude: number;
-};
+  timezone: string;
+  utc_offset: string;
+  country_calling_code: string;
+  currency: string;
+  languages: string;
+  asn: string;
+  org: string;
+}
 
 type CachedEntry = { ts: number; data: IpApiResponse };
 
@@ -53,9 +64,7 @@ async function getIpGeoBoot(): Promise<IpApiResponse | null> {
   } catch {/* ignore parse errors */}
 
   try {
-        const base = nearbrewConfig.apiBaseUrl; // '/api' in dev, Render URL in prod
-
-const res = await fetch(`${base}/geo/ip`, { cache: 'no-store' });
+    const res = await fetch('https://ipapi.co/json/', { cache: 'no-store' });
     if (!res.ok) return null;
     const data = (await res.json()) as IpApiResponse;
     localStorage.setItem('ipgeo:last', JSON.stringify({ ts: Date.now(), data }));

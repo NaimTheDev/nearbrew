@@ -214,50 +214,6 @@ export async function app(fastify: FastifyInstance, opts: AppOptions) {
    fastify.get<{ Reply: HealthResponse }>('/health', async (request, reply) => {
     return { status: 'ok' };
   });
-  // get ip of user
-
-  fastify.get('/geo/ip', async (request, reply) => {
-  const clientIp = getClientIp(request);
-  const cacheKey = `ipgeo:${clientIp}`;
-
-  const cached = cache.get(cacheKey);
-  if (cached) {
-    console.log('Cache hit for IP geolocation:', clientIp);
-    reply
-      .header('Cache-Control', 'public, max-age=86400, stale-while-revalidate=604800')
-      .header('Vary', 'X-Real-IP, X-Forwarded-For');
-    return cached;
-  }
-console.log('Cache miss for IP geolocation:', clientIp);
-
-const url = new URL('https://api.ipapi.com/api/check');
-const accessKey = process.env.IPAPI_ACCESS_KEY;
-if (!accessKey) {
-  reply.code(500);
-  return { status: 'error', message: 'IPAPI_ACCESS_KEY not set' };
-}
-url.searchParams.set('access_key', accessKey);
-
-
-const res = await fetch(url.toString(), {
-  headers: { Accept: 'application/json' },
-});  if (!res.ok) {
-    reply.code(res.status);
-    return { status: 'error', message: `ipapi error ${res.status}` };
-  }
-
-  const data = await res.json();
-
-  // Per-entry TTL override: 24h
-  cache.set(cacheKey, data, 86400*7);
-
-  reply
-    .header('Cache-Control', 'public, max-age=86400, stale-while-revalidate=604800')
-    .header('Vary', 'X-Real-IP, X-Forwarded-For');
-
-  return data;
-});
-
   fastify.get<{
     Querystring: VenueFilterRequest;
     Reply: VenueFilterResponse;
